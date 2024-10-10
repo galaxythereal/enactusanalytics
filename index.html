@@ -315,20 +315,18 @@ document.addEventListener("DOMContentLoaded", function () {
     
 
     // Fetch data from Google Apps Script
- async function fetchData() {
+async function fetchData() {
+    loadingOverlay.style.display = 'flex';
     try {
-        const applicantsResponse = await fetch('https://script.google.com/macros/s/AKfycbyjAoTbbqFp5Zw2LsC1F__4cwLI_9fTt0DWw_7yasOB43Eo3TljPt0WbMqB-2sW4kTm/exec?action=getApplicants');
-        const applicantsData = await applicantsResponse.json();
-        
-        const statsResponse = await fetch('https://script.google.com/.../exec?action=getStats');
-        const statsData = await statsResponse.json();
-        
-        if (applicantsData.status === "error" || statsData.status === "error") {
-            throw new Error(applicantsData.message || statsData.message);
+        const response = await fetch('https://script.google.com/macros/s/AKfycbxImkgurDAl-P0cP948BLYpXgm4e93Tn7ObdTxU5rOz0MAGtGS9wTA2NnZf7_mGC_cA/exec');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
-        
-        // Process applicants data
-        applicants = applicantsData.data.map(row => ({
+        const data = await response.json();
+        if (data.status === "error") {
+            throw new Error(data.message);
+        }
+        applicants = data.data.map(row => ({
             id: row['Timestamp'],
             name: row['Full Name'] || 'N/A',
             email: row['Email Address'] || 'N/A',
@@ -339,10 +337,7 @@ document.addEventListener("DOMContentLoaded", function () {
             gender: row['Gender'] || 'N/A',
             applicationDate: new Date(row['Timestamp']).toISOString().split('T')[0]
         }));
-        
-        // Process stats data
-        stats = statsData.data;
-        
+        stats = data.stats;
         initializeDashboard();
     } catch (error) {
         console.error('Error fetching data:', error);
