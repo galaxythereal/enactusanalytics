@@ -236,7 +236,7 @@ tr:hover {
 
     // Fetch data from Google Apps Script using JSONP
     function fetchData() {
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPH7W_XFs7K9wo0NDqDFRlHXpo13ecQKyF8nXjYjFYei6NAo5S3xdfpsUTttVKuVIr/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvxkaoU0_AHLvTHqsiErgWlFWwdpup0GrtDpLRAnNabbgWRij_oGluCbAdydNNmXXW/exec';
         const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
         window[callbackName] = function(response) {
             delete window[callbackName];
