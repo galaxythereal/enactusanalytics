@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enactus Menoufia Recruitment Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<style>
+  /* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f4f8;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header styles */
+header {
+    background-color: #003366;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+/* Dashboard styles */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card h2 {
+    color: #003366;
+    margin-bottom: 15px;
+}
+
+/* Chart styles */
+.chart {
+    width: 100%;
+    height: 300px;
+}
+
+/* Filter and search styles */
+.filters {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.filters select, .filters input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Table styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #003366;
+    color: white;
+}
+
+tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 8px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    .filters {
+        flex-direction: column;
+    }
+
+    .filters select, .filters input {
+        margin-bottom: 10px;
+    }
+}
+</style>
+<body>
+    <header>
+        <h1>Enactus Menoufia Recruitment Dashboard</h1>
+    </header>
+
+    <div class="container">
+        <div class="filters">
+            <select id="committeeFilter">
+                <option value="">All Committees</option>
+            </select>
+            <select id="facultyFilter">
+                <option value="">All Faculties</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="Search applicants...">
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h2>Total Applicants</h2>
+                <div id="totalApplicants" class="chart"></div>
+            </div>
+            <div class="card">
+                <h2>Gender Distribution</h2>
+                <div id="genderDistribution" class="chart"></div>
+            </div>
+            <div class="card">
+                <h2>Faculty Distribution</h2>
+                <div id="facultyDistribution" class="chart"></div>
+            </div>
+            <div class="card">
+                <h2>Committee Preferences</h2>
+                <div id="committeePreferences" class="chart"></div>
+            </div>
+        </div>
+
+        <table id="applicantsTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Preferred Committee</th>
+                    <th>Faculty</th>
+                    <th>Academic Year</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table rows will be populated dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="applicantModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Applicant Profile</h2>
+            <div id="applicantDetails"></div>
+        </div>
+    </div>
+
+    <script>
+      function onDataFetched(data) {
+    window.onDataFetched(data);
+}
+// Global variables
+let applicants = [];
+const committeeFilter = document.getElementById('committeeFilter');
+const facultyFilter = document.getElementById('facultyFilter');
+const searchInput = document.getElementById('searchInput');
+const applicantsTable = document.getElementById('applicantsTable');
+const applicantModal = document.getElementById('applicantModal');
+const applicantDetails = document.getElementById('applicantDetails');
+const closeModal = document.getElementsByClassName('close')[0];
+
+// Fetch data from Google Apps Script
+function fetchData() {
+    const script = document.createElement('script');
+    script.src = 'https://script.google.com/macros/s/AKfycbx5DqHJMrICPRGZuMDA6-gScJ6OB-pxnKRSXnIeA6O5mHpaRHq93XKiLQq8JfLYmx0/exec?action=getApplicants&callback=onDataFetched';
+    document.body.appendChild(script);
+}
+
+function onDataFetched(data) {
+    applicants = data;
+    populateFilters();
+    renderTable();
+    initCharts();
+}
+
+// Populate filter dropdowns
+function populateFilters() {
+    const committees = [...new Set(applicants.map(a => a.preferredCommittee))];
+    const faculties = [...new Set(applicants.map(a => a.faculty))];
+
+    committees.forEach(committee => {
+        const option = document.createElement('option');
+        option.value = committee;
+        option.textContent = committee;
+        committeeFilter.appendChild(option);
+    });
+
+    faculties.forEach(faculty => {
+        const option = document.createElement('option');
+        option.value = faculty;
+        option.textContent = faculty;
+        facultyFilter.appendChild(option);
+    });
+}
+
+// Render applicants table
+function renderTable() {
+    const tbody = applicantsTable.querySelector('tbody');
+    tbody.innerHTML = '';
+
+    const filteredApplicants = applicants.filter(applicant => {
+        const committeeMatch = !committeeFilter.value || applicant.preferredCommittee === committeeFilter.value;
+        const facultyMatch = !facultyFilter.value || applicant.faculty === facultyFilter.value;
+        const searchMatch = !searchInput.value || 
+            applicant.firstName.toLowerCase().includes(searchInput.value.toLowerCase()) ||
+            applicant.lastName.toLowerCase().includes(searchInput.value.toLowerCase());
+        return committeeMatch && facultyMatch && searchMatch;
+    });
+
+    filteredApplicants.forEach(applicant => {
+        const row = tbody.insertRow();
+        row.insertCell().textContent = `${applicant.firstName} ${applicant.lastName}`;
+        row.insertCell().textContent = applicant.preferredCommittee;
+        row.insertCell().textContent = applicant.faculty;
+        row.insertCell().textContent = applicant.academicYear;
+
+        const actionsCell = row.insertCell();
+        const viewButton = document.createElement('button');
+        viewButton.textContent = 'View Profile';
+        viewButton.onclick = () => showApplicantProfile(applicant);
+        actionsCell.appendChild(viewButton);
+    });
+}
+
+// Show applicant profile modal
+function showApplicantProfile(applicant) {
+    applicantDetails.innerHTML = `
+        <h3>${applicant.firstName} ${applicant.lastName}</h3>
+        <p><strong>Email:</strong> ${applicant.email}</p>
+        <p><strong>Phone:</strong> ${applicant.phone}</p>
+        <p><strong>Gender:</strong> ${applicant.gender}</p>
+        <p><strong>Faculty:</strong> ${applicant.faculty}</p>
+        <p><strong>Academic Year:</strong> ${applicant.academicYear}</p>
+        <p><strong>Preferred Committee:</strong> ${applicant.preferredCommittee}</p>
+        <p><strong>Skills:</strong> ${applicant.skills}</p>
+        <p><strong>Experience:</strong> ${applicant.experience}</p>
+        <p><strong>Date of Birth:</strong> ${applicant.dob}</p>
+        <p><strong>Facebook:</strong> ${applicant.facebook}</p>
+        <p><strong>LinkedIn:</strong> ${applicant.linkedin}</p>
+        <p><strong>Portfolio:</strong> ${applicant.portfolio}</p>
+        <h4>Committee-Specific Questions:</h4>
+    `;
+
+    // Add committee-specific questions
+    const committees = ['projects', 'logistics', 'presentation', 'graphicDesign', 'videoPhoto', 'hr', 'prFr', 'digitalMarketing'];
+    committees.forEach(committee => {
+        if (applicant[`${committee}Q1`]) {
+            applicantDetails.innerHTML += `
+                <h5>${committee.charAt(0).toUpperCase() + committee.slice(1)} Committee:</h5>
+                <p><strong>Q1:</strong> ${applicant[`${committee}Q1`]}</p>
+                <p><strong>Q2:</strong> ${applicant[`${committee}Q2`]}</p>
+                <p><strong>Q3:</strong> ${applicant[`${committee}Q3`]}</p>
+            `;
+        }
+    });
+
+    applicantModal.style.display = 'block';
+}
+
+// Initialize charts
+function initCharts() {
+    // Total Applicants
+    new Chart(document.getElementById('totalApplicants'), {
+        type: 'bar',
+        data: {
+            labels: ['Total Applicants'],
+            datasets: [{
+                label: 'Number of Applicants',
+                data: [applicants.length],
+                backgroundColor: '#003366'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Gender Distribution
+    const genderData = applicants.reduce((acc, applicant) => {
+        acc[applicant.gender] = (acc[applicant.gender] || 0) + 1;
+        return acc;
+    }, {});
+
+    new Chart(document.getElementById('genderDistribution'), {
+        type: 'pie',
+        data: {
+            labels: Object.keys(genderData),
+            datasets: [{
+                data: Object.values(genderData),
+                backgroundColor: ['#003366', '#66ccff']
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+
+    // Faculty Distribution
+    const facultyData = applicants.reduce((acc, applicant) => {
+        acc[applicant.faculty] = (acc[applicant.faculty] || 0) + 1;
+        return acc;
+    }, {});
+
+    new Chart(document.getElementById('facultyDistribution'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(facultyData),
+            datasets: [{
+                label: 'Number of Applicants',
+                data: Object.values(facultyData),
+                backgroundColor: '#003366'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Committee Preferences
+    const committeeData = applicants.reduce((acc, applicant) => {
+        acc[applicant.preferredCommittee] = (acc[applicant.preferredCommittee] || 0) + 1;
+        return acc;
+    }, {});
+
+    new Chart(document.getElementById('committeePreferences'), {
+        type: 'pie',
+        data: {
+            labels: Object.keys(committeeData),
+            datasets: [{
+                data: Object.values(committeeData),
+                backgroundColor: [
+                    '#003366', '#66ccff', '#ff9900', '#33cc33', 
+                    '#ff3366', '#9966ff', '#ffcc00', '#00cc99'
+                ]
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+}
+
+// Event listeners
+committeeFilter.addEventListener('change', renderTable);
+facultyFilter.addEventListener('change', renderTable);
+searchInput.addEventListener('input', renderTable);
+closeModal.addEventListener('click', () => applicantModal.style.display = 'none');
+window.addEventListener('click', (event) => {
+    if (event.target == applicantModal) {
+        applicantModal.style.display = 'none';
+    }
+});
+
+// Initialize the dashboard
+fetchData();
+</script>
+</body>
+</html>
