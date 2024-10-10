@@ -224,33 +224,44 @@ tr:hover {
     window.onDataFetched(data);
 }
 // Global variables
-let applicants = [];
-const committeeFilter = document.getElementById('committeeFilter');
-const facultyFilter = document.getElementById('facultyFilter');
-const searchInput = document.getElementById('searchInput');
-const applicantsTable = document.getElementById('applicantsTable');
-const applicantModal = document.getElementById('applicantModal');
-const applicantDetails = document.getElementById('applicantDetails');
-const closeModal = document.getElementsByClassName('close')[0];
+ // Global variables
+    let applicants = [];
+    const committeeFilter = document.getElementById('committeeFilter');
+    const facultyFilter = document.getElementById('facultyFilter');
+    const searchInput = document.getElementById('searchInput');
+    const applicantsTable = document.getElementById('applicantsTable');
+    const applicantModal = document.getElementById('applicantModal');
+    const applicantDetails = document.getElementById('applicantDetails');
+    const closeModal = document.getElementsByClassName('close')[0];
 
-// Fetch data from Google Apps Script
-function fetchData() {
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxY3pBY2BHGFfiGkwwtRuJ2Nlj3VmcUk1EOxryv4j3vaEoBtvf5UUcl9V6Esr7BCfHY/exec';
-  const script = document.createElement('script');
-  script.src = `${SCRIPT_URL}?action=getApplicants&callback=onDataFetched`;
-  document.body.appendChild(script);
-}
+    // Fetch data from Google Apps Script
+    async function fetchData() {
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxY3pBY2BHGFfiGkwwtRuJ2Nlj3VmcUk1EOxryv4j3vaEoBtvf5UUcl9V6Esr7BCfHY/exec';
+        try {
+            const response = await fetch(`${SCRIPT_URL}?action=getApplicants`, {
+                method: 'GET',
+                mode: 'cors',
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const result = await response.json();
+            if (result.status === "success") {
+                onDataFetched(result.data);
+            } else {
+                throw new Error(result.message || "Unknown error occurred");
+            }
+        } catch (error) {
+            console.error("Could not fetch data:", error);
+        }
+    }
 
-function onDataFetched(response) {
-  if (response.status === "success") {
-    applicants = response.data;
-    populateFilters();
-    renderTable();
-    initCharts();
-  } else {
-    console.error("Could not fetch data:", response.message);
-  }
-}
+    function onDataFetched(data) {
+        applicants = data;
+        populateFilters();
+        renderTable();
+        initCharts();
+    }
 
 // Populate filter dropdowns
 function populateFilters() {
