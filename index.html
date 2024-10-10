@@ -3,694 +3,586 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enactus Menoufia Analytics Hub</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <title>Enactus Menoufia Advanced Analytics Hub</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
     <style>
-        /* Global styles */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
         body {
-            background-color: #F9FAFB;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
         }
-        .loading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5, #0ea5e9);
         }
-        .loading .spinner {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #3498db;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        /* Header Styles */
-        header {
-            background: linear-gradient(to right, #003399, #0099ff);
-            color: #fff;
-            padding: 1rem 0;
+
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
         }
-        header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-        header p {
-            font-size: 1.2rem;
-        }
-        .header-buttons button {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            transition: all 0.3s;
-        }
-        .header-buttons button:hover {
-            transform: scale(1.05);
-        }
-        /* Main Section */
-        main {
-            margin-top: 2rem;
-        }
-        .filters, .data-cards, .charts, .table-container {
-            margin-bottom: 2rem;
-        }
-        .filters select, .filters input {
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 0.5rem;
-            width: 100%;
-            transition: border-color 0.3s;
-        }
-        .filters select:hover, .filters input:hover {
-            border-color: #3498db;
-        }
-        .data-card {
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
-        }
-        .data-card:hover {
-            transform: translateY(-0.5rem);
-        }
-        .data-card .icon-container {
-            background-color: #3498db;
-            padding: 1rem;
-            border-radius: 50%;
-        }
-        /* Charts */
+
         .chart-container {
-            height: 400px;
-            background-color: #fff;
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        /* Table */
-        .table-container table {
+            position: relative;
+            height: 300px;
             width: 100%;
-            border-collapse: collapse;
         }
-        .table-container th, .table-container td {
-            padding: 1rem;
-            border: 1px solid #ddd;
-        }
-        .table-container th {
-            background-color: #f5f5f5;
-            font-weight: 600;
-        }
-        .table-container tbody tr:hover {
-            background-color: #f9f9f9;
-        }
-        .pagination {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-        }
-        .pagination button {
-            background-color: #3498db;
-            color: #fff;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.3s;
-        }
-        .pagination button:hover {
-            background-color: #2980b9;
-        }
-        /* Modal */
-        .modal {
+
+        .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.5);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-            visibility: hidden;
-            opacity: 0;
-            transition: visibility 0s, opacity 0.3s;
+            z-index: 9999;
         }
-        .modal.active {
-            visibility: visible;
-            opacity: 1;
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
         }
-        .modal-content {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 1rem;
-            width: 60%;
-            position: relative;
-        }
-        .modal-close {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 1.5rem;
-            cursor: pointer;
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body>
-    <div id="loadingScreen" class="loading">
+<body class="min-h-screen">
+    <div id="loading-overlay" class="loading-overlay">
         <div class="spinner"></div>
     </div>
 
-    <div class="min-h-screen">
-        <!-- Header -->
-        <header>
-            <div class="container mx-auto px-4 py-6">
-                <div class="flex flex-col md:flex-row justify-between items-center">
-                    <div>
-                        <h1>Enactus Menoufia</h1>
-                        <p>Recruitment Analytics Hub</p>
-                    </div>
-                    <div class="header-buttons flex space-x-4">
-                        <button id="exportBtn" class="bg-white text-blue-900 hover:bg-blue-100 flex items-center">
-                            <i class="fas fa-download mr-2"></i>Export Report
-                        </button>
-                        <button id="refreshBtn" class="bg-green-500 hover:bg-green-600 flex items-center">
-                            <i class="fas fa-sync-alt mr-2"></i>Refresh Data
-                        </button>
-                    </div>
+    <header class="gradient-bg text-white py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold">Enactus Menoufia</h1>
+                    <p class="text-lg">Advanced Analytics Hub</p>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="exportBtn" class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition duration-300 flex items-center">
+                        <i class="fas fa-download mr-2"></i>Export Report
+                    </button>
+                    <button id="refreshBtn" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300 flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                    </button>
                 </div>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <!-- Main Content -->
-        <main class="container mx-auto px-4 py-8">
-            <!-- Filters Section -->
-            <section class="filters bg-white rounded-xl shadow-md p-6 mb-8">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Filter Analytics</h2>
+    <main class="container mx-auto px-4 py-8">
+        <section class="mb-8">
+            <div class="glassmorphism p-6">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Analytics Filters</h2>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <!-- Committee Filter -->
                     <div>
-                        <label for="committeeFilter" class="block text-sm font-medium text-gray-700">Committee</label>
-                        <select id="committeeFilter">
+                        <label for="committeeFilter" class="block text-sm font-medium text-gray-700 mb-1">Committee</label>
+                        <select id="committeeFilter" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="">All Committees</option>
                         </select>
                     </div>
-                    <!-- Faculty Filter -->
                     <div>
-                        <label for="facultyFilter" class="block text-sm font-medium text-gray-700">Faculty</label>
-                        <select id="facultyFilter">
+                        <label for="facultyFilter" class="block text-sm font-medium text-gray-700 mb-1">Faculty</label>
+                        <select id="facultyFilter" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="">All Faculties</option>
                         </select>
                     </div>
-                    <!-- Year Filter -->
                     <div>
-                        <label for="yearFilter" class="block text-sm font-medium text-gray-700">Academic Year</label>
-                        <select id="yearFilter">
+                        <label for="yearFilter" class="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
+                        <select id="yearFilter" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="">All Years</option>
                         </select>
                     </div>
-                    <!-- Search Filter -->
                     <div>
-                        <label for="searchInput" class="block text-sm font-medium text-gray-700">Search</label>
-                        <input type="text" id="searchInput" placeholder="Search applicants...">
+                        <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                        <input type="text" id="searchInput" placeholder="Search applicants..." class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <!-- Key Metrics Section -->
-            <section class="data-cards grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="data-card">
-                    <div class="flex items-center">
-                        <div class="icon-container">
-                            <i class="fas fa-users text-white text-2xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm text-gray-500 mb-1">Total Applicants</p>
-                            <h3 class="text-2xl font-bold text-gray-900" id="totalApplicants">0</h3>
-                            <span class="text-green-500 text-sm ml-2" id="applicantChange">+0%</span>
-                        </div>
+        <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="card p-6">
+                <div class="flex items-center">
+                    <div class="bg-blue-500 rounded-full p-3 mr-4">
+                        <i class="fas fa-users text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Total Applicants</p>
+                        <h3 class="text-2xl font-bold text-gray-900" id="totalApplicants">0</h3>
+                        <span class="text-green-500 text-sm" id="applicantChange">+0%</span>
                     </div>
                 </div>
-                <!-- More metrics for gender, top faculty, popular committee -->
-            </section>
+            </div>
+            <div class="card p-6">
+                <div class="flex items-center">
+                    <div class="bg-green-500 rounded-full p-3 mr-4">
+                        <i class="fas fa-venus-mars text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Gender Ratio</p>
+                        <h3 class="text-2xl font-bold text-gray-900" id="genderRatio">0:0</h3>
+                        <span class="text-blue-500 text-sm">Male : Female</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-6">
+                <div class="flex items-center">
+                    <div class="bg-purple-500 rounded-full p-3 mr-4">
+                        <i class="fas fa-graduation-cap text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Top Faculty</p>
+                        <h3 class="text-2xl font-bold text-gray-900" id="topFaculty">-</h3>
+                        <span class="text-purple-500 text-sm" id="topFacultyPercentage">0%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-6">
+                <div class="flex items-center">
+                    <div class="bg-yellow-500 rounded-full p-3 mr-4">
+                        <i class="fas fa-chart-pie text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Popular Committee</p>
+                        <h3 class="text-2xl font-bold text-gray-900" id="popularCommittee">-</h3>
+                        <span class="text-yellow-500 text-sm" id="popularCommitteePercentage">0%</span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-            <!-- Charts Section -->
-            <section class="charts grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="card p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Application Timeline</h3>
                 <div class="chart-container">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Application Timeline</h3>
                     <canvas id="timelineChart"></canvas>
                 </div>
+            </div>
+            <div class="card p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Committee Distribution</h3>
                 <div class="chart-container">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Committee Distribution</h3>
                     <canvas id="committeeChart"></canvas>
                 </div>
-                <!-- More charts for Faculty Breakdown, Academic Year -->
-            </section>
+            </div>
+        </section>
 
-            <!-- Applicants Table -->
-            <section class="table-container bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h3 class="text-lg font-semibold text-gray-800">Applicants List</h3>
-                    <div class="flex space-x-2">
-                        <button class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors">
-                            <i class="fas fa-filter mr-2"></i>Filter
+        <section class="card overflow-hidden">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-xl font-semibold text-gray-800">Applicants List</h3>
+                <div class="flex space-x-2">
+                    <button id="filterToggle" class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors">
+                        <i class="fas fa-filter mr-2"></i>Toggle Filters
+                    </button>
+                    <button id="exportTable" class="bg-green-100 text-green-800 px-4 py-2 rounded-lg hover:bg-green-200 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Export Table
+                    </button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Committee</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Faculty</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicantsTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Table rows will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 flex items-center justify-between border-t border-gray-200">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Showing <span id="startRange" class="font-medium">1</span> to <span id="endRange" class="font-medium">10</span> of <span id="totalEntries" class="font-medium">0</span> entries
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <button id="prevPage" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Previous</span>
+                            <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button class="bg-green-100 text-green-800 px-4 py-2 rounded-lg hover:bg-green-200 transition-colors">
-                            <i class="fas fa-download mr-2"></i>Export
+                        <button id="nextPage" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Next</span>
+                            <i class="fas fa-chevron-right"></i>
                         </button>
+                    </nav>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="applicantModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                Applicant Profile
+                            </h3>
+                            <div class="mt-2">
+                                <div id="modalContent">
+                                    <!-- Dynamic content for applicant profile -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th>Name</th>
-                                <th>Committee</th>
-                                <th>Faculty</th>
-                                <th>Year</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="applicantsTableBody">
-                            <!-- Table rows dynamically inserted here -->
-                        </tbody>
-                    </table>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" id="closeModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
                 </div>
-                <div class="pagination">
-                    <p>Showing <span id="startRange">1</span> to <span id="endRange">10</span> of <span id="totalEntries">0</span> entries</p>
-                    <div>
-                        <button>Previous</button>
-                        <button>Next</button>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- Modal for Applicant Details -->
-    <div id="applicantModal" class="modal">
-        <div class="modal-content">
-            <span id="closeModal" class="modal-close">&times;</span>
-            <h2 id="modalTitle">Applicant Profile</h2>
-            <div id="modalContent">
-                <!-- Dynamic content for applicant profile -->
             </div>
         </div>
     </div>
-
     <script>
-        // Global variables
-        let applicants = [];
-        let charts = {};
-        const colorPalette = [
-            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
-            '#6366F1', '#EC4899', '#8B5CF6', '#14B8A6'
-        ];
+document.addEventListener("DOMContentLoaded", function () {
+    let applicants = [];
+    let filteredApplicants = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
 
-        // DOM elements
-        const elements = {
-            loadingScreen: document.getElementById('loadingScreen'),
-            committeeFilter: document.getElementById('committeeFilter'),
-            facultyFilter: document.getElementById('facultyFilter'),
-            yearFilter: document.getElementById('yearFilter'),
-            searchInput: document.getElementById('searchInput'),
-            applicantModal: document.getElementById('applicantModal'),
-            closeModal: document.getElementById('closeModal'),
-            refreshBtn: document.getElementById('refreshBtn'),
-            exportBtn: document.getElementById('exportBtn')
-        };
+    const filters = {
+        committee: '',
+        faculty: '',
+        year: '',
+        search: ''
+    };
 
-        // Initialize event listeners
-        function initEventListeners() {
-            elements.committeeFilter.addEventListener('change', updateDashboard);
-            elements.facultyFilter.addEventListener('change', updateDashboard);
-            elements.yearFilter.addEventListener('change', updateDashboard);
-            elements.searchInput.addEventListener('input', updateDashboard);
-            elements.closeModal.addEventListener('click', () => elements.applicantModal.classList.add('hidden'));
-            elements.refreshBtn.addEventListener('click', fetchData);
-            elements.exportBtn.addEventListener('click', exportData);
+    // DOM elements
+    const totalApplicantsEl = document.getElementById('totalApplicants');
+    const genderRatioEl = document.getElementById('genderRatio');
+    const topFacultyEl = document.getElementById('topFaculty');
+    const popularCommitteeEl = document.getElementById('popularCommittee');
+    const startRangeEl = document.getElementById('startRange');
+    const endRangeEl = document.getElementById('endRange');
+    const totalEntriesEl = document.getElementById('totalEntries');
+    const applicantModal = document.getElementById('applicantModal');
+    const modalContentEl = document.getElementById('modalContent');
+    const loadingOverlay = document.getElementById('loading-overlay');
 
-            window.addEventListener('click', (event) => {
-                if (event.target === elements.applicantModal) {
-                    elements.applicantModal.classList.add('hidden');
-                }
-            });
-        }
+    // Chart instances
+    let timelineChart, committeeChart;
 
-        // Data fetching and error handling
-        async function fetchData() {
-            elements.loadingScreen.classList.remove('hidden');
-            try {
-                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvxkaoU0_AHLvTHqsiErgWlFWwdpup0GrtDpLRAnNabbgWRij_oGluCbAdydNNmXXW/exec';
-                const response = await fetch(`${SCRIPT_URL}?action=getApplicants`);
-                const data = await response.json();
-                
-                if (data.status === "success") {
-                    applicants = data.data.map(enrichApplicantData);
-                    initializeDashboard();
-                } else {
-                    throw new Error(data.message || 'Failed to fetch data');
-                }
-            } catch (error) {
-                showError('Failed to load data. Please try again later.');
-                console.error('Data fetching error:', error);
-            } finally {
-                elements.loadingScreen.classList.add('hidden');
+    // Fetch data from Google Apps Script
+    async function fetchData() {
+        loadingOverlay.style.display = 'flex';
+        try {
+            const response = await fetch('https://script.google.com/macros/s/AKfycbyvxkaoU0_AHLvTHqsiErgWlFWwdpup0GrtDpLRAnNabbgWRij_oGluCbAdydNNmXXW/exec');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
+            const data = await response.json();
+            applicants = data.map(row => ({
+                id: row[0],
+                name: row[1],
+                email: row[2],
+                committee: row[3],
+                faculty: row[4],
+                year: row[5],
+                status: row[6],
+                gender: row[7],
+                applicationDate: row[8]
+            }));
+            initializeDashboard();
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            alert('Failed to fetch data. Please try again later.');
+        } finally {
+            loadingOverlay.style.display = 'none';
         }
+    }
 
-        function enrichApplicantData(applicant) {
-            return {
-                ...applicant,
-                fullName: `${applicant.firstName} ${applicant.lastName}`,
-                applicationDate: new Date(applicant.timestamp)
-            };
-        }
+    function initializeDashboard() {
+        updateFilters();
+        updateDashboard();
+        initializeCharts();
+        attachEventListeners();
+    }
 
-        function showError(message) {
-            alert(message); // Simple alert for errors
-        }
+    function updateFilters() {
+        const committees = [...new Set(applicants.map(a => a.committee))];
+        const faculties = [...new Set(applicants.map(a => a.faculty))];
+        const years = [...new Set(applicants.map(a => a.year))];
 
-        // Dashboard initialization and updates
-        function initializeDashboard() {
-            populateFilters();
-            initializeCharts();
-            updateDashboard();
-        }
+        populateSelect('committeeFilter', committees);
+        populateSelect('facultyFilter', faculties);
+        populateSelect('yearFilter', years);
+    }
 
-        function updateDashboard() {
-            const filteredData = getFilteredData();
-            updateStats(filteredData);
-            updateCharts(filteredData);
-            updateTable(filteredData);
-        }
+    function populateSelect(id, options) {
+        const select = document.getElementById(id);
+        select.innerHTML = '<option value="">All</option>';
+        options.forEach(option => {
+            const optionEl = document.createElement('option');
+            optionEl.value = option;
+            optionEl.textContent = option;
+            select.appendChild(optionEl);
+        });
+    }
 
-        function getFilteredData() {
-            return applicants.filter(applicant => {
-                const committeeMatch = !elements.committeeFilter.value || 
-                    applicant.preferredCommittee === elements.committeeFilter.value;
-                const facultyMatch = !elements.facultyFilter.value || 
-                    applicant.faculty === elements.facultyFilter.value;
-                const yearMatch = !elements.yearFilter.value || 
-                    applicant.academicYear === elements.yearFilter.value;
-                const searchMatch = !elements.searchInput.value || 
-                    applicant.fullName.toLowerCase().includes(elements.searchInput.value.toLowerCase());
-                
-                return committeeMatch && facultyMatch && yearMatch && searchMatch;
-            });
-        }
+    function updateDashboard() {
+        applyFilters();
+        updateStats();
+        renderTable();
+        updateCharts();
+    }
 
-        // Filter population
-        function populateFilters() {
-            const committees = [...new Set(applicants.map(a => a.preferredCommittee))];
-            const faculties = [...new Set(applicants.map(a => a.faculty))];
-            const years = [...new Set(applicants.map(a => a.academicYear))];
+    function applyFilters() {
+        filteredApplicants = applicants.filter(applicant => {
+            return (filters.committee ? applicant.committee === filters.committee : true) &&
+                   (filters.faculty ? applicant.faculty === filters.faculty : true) &&
+                   (filters.year ? applicant.year === filters.year : true) &&
+                   (filters.search ? applicant.name.toLowerCase().includes(filters.search.toLowerCase()) : true);
+        });
+    }
 
-            populateSelect(elements.committeeFilter, committees);
-            populateSelect(elements.facultyFilter, faculties);
-            populateSelect(elements.yearFilter, years);
-        }
+    function updateStats() {
+        totalApplicantsEl.textContent = filteredApplicants.length;
+        
+        const genderCounts = filteredApplicants.reduce((acc, applicant) => {
+            acc[applicant.gender] = (acc[applicant.gender] || 0) + 1;
+            return acc;
+        }, {});
+        genderRatioEl.textContent = `${genderCounts['Male'] || 0}:${genderCounts['Female'] || 0}`;
 
-        function populateSelect(select, options) {
-            select.innerHTML = '<option value="">All</option>';
-            options.forEach(option => {
-                const optionElement = document.createElement('option');
-                optionElement.value = option;
-                optionElement.textContent = option;
-                select.appendChild(optionElement);
-            });
-        }
+        const facultyCounts = filteredApplicants.reduce((acc, applicant) => {
+            acc[applicant.faculty] = (acc[applicant.faculty] || 0) + 1;
+            return acc;
+        }, {});
+        const topFaculty = Object.entries(facultyCounts).sort((a, b) => b[1] - a[1])[0];
+        topFacultyEl.textContent = topFaculty ? topFaculty[0] : '-';
+        document.getElementById('topFacultyPercentage').textContent = topFaculty ? `${((topFaculty[1] / filteredApplicants.length) * 100).toFixed(1)}%` : '0%';
 
-        // Stats updates
-        function updateStats(filteredData) {
-            const totalApplicants = filteredData.length;
-            document.getElementById('totalApplicants').textContent = totalApplicants;
-            
-            const femaleCount = filteredData.filter(a => a.gender === 'Female').length;
-            const maleCount = totalApplicants - femaleCount;
-            const femaleRatio = totalApplicants ? ((femaleCount / totalApplicants) * 100).toFixed(1) : 0;
-            
-            document.getElementById('genderRatio').textContent = `${femaleRatio}%`;
-            document.getElementById('femaleCount').textContent = `Female: ${femaleCount}`;
-            document.getElementById('maleCount').textContent = `Male: ${maleCount}`;
+        const committeeCounts = filteredApplicants.reduce((acc, applicant) => {
+            acc[applicant.committee] = (acc[applicant.committee] || 0) + 1;
+            return acc;
+        }, {});
+        const popularCommittee = Object.entries(committeeCounts).sort((a, b) => b[1] - a[1])[0];
+        popularCommitteeEl.textContent = popularCommittee ? popularCommittee[0] : '-';
+        document.getElementById('popularCommitteePercentage').textContent = popularCommittee ? `${((popularCommittee[1] / filteredApplicants.length) * 100).toFixed(1)}%` : '0%';
+    }
 
-            const facultyCounts = getCounts(filteredData, 'faculty');
-            const topFaculty = getTopItem(facultyCounts);
-            document.getElementById('topFaculty').textContent = topFaculty.item;
-            document.getElementById('topFacultyStats').textContent = 
-                `${topFaculty.count} applicants (${((topFaculty.count / totalApplicants) * 100).toFixed(1)}%)`;
+    function renderTable() {
+        const tbody = document.getElementById('applicantsTableBody');
+        tbody.innerHTML = '';
 
-            const committeeCounts = getCounts(filteredData, 'preferredCommittee');
-            const topCommittee = getTopItem(committeeCounts);
-            document.getElementById('topCommittee').textContent = topCommittee.item;
-            document.getElementById('topCommitteeStats').textContent = 
-                `${topCommittee.count} applicants (${((topCommittee.count / totalApplicants) * 100).toFixed(1)}%)`;
-        }
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pageApplicants = filteredApplicants.slice(start, end);
 
-        // Chart initialization and updates
-        function initializeCharts() {
-            const chartContexts = {
-                timelineChart: document.getElementById('timelineChart'),
-                committeeChart: document.getElementById('committeeChart'),
-                facultyChart: document.getElementById('facultyChart'),
-                yearChart: document.getElementById('yearChart')
-            };
-
-            Object.entries(chartContexts).forEach(([chartId, context]) => {
-                const ctx = context.getContext('2d');
-                charts[chartId] = createChart(chartId, ctx);
-            });
-        }
-
-        function createChart(chartId, ctx) {
-            const commonOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            };
-
-            switch(chartId) {
-                case 'timelineChart':
-                    return new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            datasets: [{
-                                label: 'Applications',
-                                borderColor: '#3B82F6',
-                                tension: 0.1
-                            }]
-                        },
-                        options: {
-                            ...commonOptions,
-                            scales: {
-                                x: {
-                                    type: 'time',
-                                    time: {
-                                        unit: 'day'
-                                    }
-                                },
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
-                    });
-                case 'committeeChart':
-                    return new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            datasets: [{
-                                backgroundColor: colorPalette
-                            }]
-                        },
-                        options: commonOptions
-                    });
-                case 'facultyChart':
-                    return new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            datasets: [{
-                                backgroundColor: colorPalette
-                            }]
-                        },
-                        options: {
-                            ...commonOptions,
-                            scales: {
-                                y: {
-                                    beginAtZero: true
-                                }
-                            }
-                        }
-                    });
-                case 'yearChart':
-                    return new Chart(ctx, {
-                        type: 'pie',
-                        data: {
-                            datasets: [{
-                                backgroundColor: colorPalette
-                            }]
-                        },
-                        options: commonOptions
-                    });
-            }
-        }
-
-        function updateCharts(filteredData) {
-            updateTimelineChart(filteredData);
-            updateDistributionChart(filteredData, 'committeeChart', 'preferredCommittee');
-            updateDistributionChart(filteredData, 'facultyChart', 'faculty');
-            updateDistributionChart(filteredData, 'yearChart', 'academicYear');
-        }
-
-        function updateTimelineChart(filteredData) {
-            const timelineData = getTimelineData(filteredData);
-            charts.timelineChart.data.labels = timelineData.labels;
-            charts.timelineChart.data.datasets[0].data = timelineData.data;
-            charts.timelineChart.update();
-        }
-
-        function updateDistributionChart(filteredData, chartId, property) {
-            const counts = getCounts(filteredData, property);
-            charts[chartId].data.labels = Object.keys(counts);
-            charts[chartId].data.datasets[0].data = Object.values(counts);
-            charts[chartId].update();
-        }
-
-        // Table updates
-        function updateTable(filteredData) {
-            const tbody = document.getElementById('applicantsTableBody');
-            tbody.innerHTML = '';
-
-            filteredData.forEach(applicant => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
+        pageApplicants.forEach(applicant => {
+            const row = `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">${applicant.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${applicant.committee}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${applicant.faculty}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${applicant.year}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-10 w-10">
-                                <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <span class="text-gray-500 font-medium">${applicant.firstName[0]}${applicant.lastName[0]}</span>
-                                </div>
-                            </div>
-                            <div class="ml-4">
-                                <div class="text-sm font-medium text-gray-900">${applicant.fullName}</div>
-                                <div class="text-sm text-gray-500">${applicant.email}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            ${applicant.preferredCommittee}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${applicant.faculty}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${applicant.academicYear}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Pending
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${getStatusColor(applicant.status)}-100 text-${getStatusColor(applicant.status)}-800">
+                            ${applicant.status}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onclick="showApplicantProfile('${applicant.email}')" class="text-blue-600 hover:text-blue-900">View Profile</button>
+                        <button onclick="viewProfile(${applicant.id})" class="text-indigo-600 hover:text-indigo-900">View Profile</button>
                     </td>
-                `;
-            });
-
-            document.getElementById('totalEntries').textContent = filteredData.length;
-        }
-
-        // Utility functions
-        function getCounts(data, property) {
-            return data.reduce((acc, item) => {
-                acc[item[property]] = (acc[item[property]] || 0) + 1;
-                return acc;
-            }, {});
-        }
-
-        function getTopItem(counts) {
-            const entries = Object.entries(counts);
-            if (entries.length === 0) return { item: '-', count: 0 };
-            
-            const [item, count] = entries.reduce((max, current) => 
-                current[1] > max[1] ? current : max
-            );
-            return { item, count };
-        }
-
-        function getTimelineData(filteredData) {
-            const dates = filteredData.map(a => a.applicationDate)
-                .sort((a, b) => a - b);
-            
-            if (dates.length === 0) return { labels: [], data: [] };
-
-            const dailyCounts = dates.reduce((acc, date) => {
-                const day = date.toISOString().split('T')[0];
-                acc[day] = (acc[day] || 0) + 1;
-                return acc;
-            }, {});
-
-            return {
-                labels: Object.keys(dailyCounts),
-                data: Object.values(dailyCounts)
-            };
-        }
- function exportData() {
-        const csvData = [];
-        const headers = ['Full Name', 'Email', 'Committee', 'Faculty', 'Academic Year'];
-
-        // Push the headers to the CSV data
-        csvData.push(headers.join(','));
-
-        // Loop through filtered applicants and push data to CSV
-        const filteredData = getFilteredData();
-        filteredData.forEach(applicant => {
-            const row = [
-                applicant.fullName,
-                applicant.email,
-                applicant.preferredCommittee,
-                applicant.faculty,
-                applicant.academicYear
-            ];
-            csvData.push(row.join(','));
+                </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', row);
         });
 
-        // Create a Blob from the CSV data
-        const csvBlob = new Blob([csvData.join('\n')], { type: 'text/csv' });
-        const url = URL.createObjectURL(csvBlob);
-
-        // Create a link to download the file
-        const downloadLink = document.createElement('a');
-        downloadLink.href = url;
-        downloadLink.download = 'applicants_data.csv';
-
-        // Append the link to the body and click to trigger download
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-
-        // Clean up
-        document.body.removeChild(downloadLink);
-        URL.revokeObjectURL(url);
+        updatePagination();
     }
 
-    initEventListeners();
+    function getStatusColor(status) {
+        switch (status.toLowerCase()) {
+            case 'accepted': return 'green';
+            case 'pending': return 'yellow';
+            case 'rejected': return 'red';
+            default: return 'gray';
+        }
+    }
+
+    function updatePagination() {
+        const totalPages = Math.ceil(filteredApplicants.length / itemsPerPage);
+        startRangeEl.textContent = ((currentPage - 1) * itemsPerPage) + 1;
+        endRangeEl.textContent = Math.min(currentPage * itemsPerPage, filteredApplicants.length);
+        totalEntriesEl.textContent = filteredApplicants.length;
+
+        document.getElementById('prevPage').disabled = currentPage === 1;
+        document.getElementById('nextPage').disabled = currentPage === totalPages;
+    }
+
+    function initializeCharts() {
+        const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+        timelineChart = new Chart(timelineCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Applications',
+                    data: [],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        const committeeCtx = document.getElementById('committeeChart').getContext('2d');
+        committeeChart = new Chart(committeeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+
+    function updateCharts() {
+        // Update Timeline Chart
+        const applicationDates = filteredApplicants.map(a => a.applicationDate).sort();
+        const dateCountMap = applicationDates.reduce((acc, date) => {
+            acc[date] = (acc[date] || 0) + 1;
+            return acc;
+        }, {});
+
+        timelineChart.data.labels = Object.keys(dateCountMap);
+        timelineChart.data.datasets[0].data = Object.values(dateCountMap);
+        timelineChart.update();
+
+        // Update Committee Chart
+        const committeeCounts = filteredApplicants.reduce((acc, applicant) => {
+            acc[applicant.committee] = (acc[applicant.committee] || 0) + 1;
+            return acc;
+        }, {});
+
+        committeeChart.data.labels = Object.keys(committeeCounts);
+        committeeChart.data.datasets[0].data = Object.values(committeeCounts);
+        committeeChart.update();
+    }
+
+    function attachEventListeners() {
+        document.getElementById('committeeFilter').addEventListener('change', handleFilterChange);
+        document.getElementById('facultyFilter').addEventListener('change', handleFilterChange);
+        document.getElementById('yearFilter').addEventListener('change', handleFilterChange);
+        document.getElementById('searchInput').addEventListener('input', handleFilterChange);
+        document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
+        document.getElementById('nextPage').addEventListener('click', () => changePage(1));
+        document.getElementById('exportBtn').addEventListener('click', exportReport);
+        document.getElementById('refreshBtn').addEventListener('click', fetchData);
+        document.getElementById('closeModal').addEventListener('click', closeModal);
+    }
+
+    function handleFilterChange(event) {
+        filters[event.target.id.replace('Filter', '').toLowerCase()] = event.target.value;
+        currentPage = 1;
+        updateDashboard();
+    }
+
+    function changePage(direction) {
+        currentPage += direction;
+        renderTable();
+    }
+
+    function viewProfile(id) {
+        const applicant = applicants.find(a => a.id === id);
+        if (!applicant) return;
+
+        modalContentEl.innerHTML = `
+            <p><strong>Name:</strong> ${applicant.name}</p>
+            <p><strong>Email:</strong> ${applicant.email}</p>
+            <p><strong>Committee:</strong> ${applicant.committee}</p>
+            <p><strong>Faculty:</strong> ${applicant.faculty}</p>
+            <p><strong>Year:</strong> ${applicant.year}</p>
+            <p><strong>Status:</strong> ${applicant.status}</p>
+            <p><strong>Gender:</strong> ${applicant.gender}</p>
+            <p><strong>Application Date:</strong> ${applicant.applicationDate}</p>
+        `;
+        applicantModal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+        applicantModal.classList.add('hidden');
+    }
+
+    function exportReport() {
+        const csvContent = [
+            ['Name', 'Email', 'Committee', 'Faculty', 'Year', 'Status', 'Gender', 'Application Date'],
+            ...filteredApplicants.map(a => [a.name, a.email, a.committee, a.faculty, a.year, a.status, a.gender, a.applicationDate])
+        ].map(row => row.join(',')).join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'enactus_applicants_report.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+
+    // Initial data fetch
     fetchData();
-        initEventListeners();
-        fetchData();
-    </script>
+});
+</script>
 </body>
 </html>
