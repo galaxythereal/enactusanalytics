@@ -311,89 +311,347 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const applicants = [];  // Placeholder for applicants data
-            let filteredApplicants = [];
+        // Global variables
+        let applicants = [];
+        let charts = {};
+        const colorPalette = [
+            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
+            '#6366F1', '#EC4899', '#8B5CF6', '#14B8A6'
+        ];
 
-            const filters = {
-                committee: '',
-                faculty: '',
-                year: '',
-                search: ''
+        // DOM elements
+        const elements = {
+            loadingScreen: document.getElementById('loadingScreen'),
+            committeeFilter: document.getElementById('committeeFilter'),
+            facultyFilter: document.getElementById('facultyFilter'),
+            yearFilter: document.getElementById('yearFilter'),
+            searchInput: document.getElementById('searchInput'),
+            applicantModal: document.getElementById('applicantModal'),
+            closeModal: document.getElementById('closeModal'),
+            refreshBtn: document.getElementById('refreshBtn'),
+            exportBtn: document.getElementById('exportBtn')
+        };
+
+        // Initialize event listeners
+        function initEventListeners() {
+            elements.committeeFilter.addEventListener('change', updateDashboard);
+            elements.facultyFilter.addEventListener('change', updateDashboard);
+            elements.yearFilter.addEventListener('change', updateDashboard);
+            elements.searchInput.addEventListener('input', updateDashboard);
+            elements.closeModal.addEventListener('click', () => elements.applicantModal.classList.add('hidden'));
+            elements.refreshBtn.addEventListener('click', fetchData);
+            elements.exportBtn.addEventListener('click', exportData);
+
+            window.addEventListener('click', (event) => {
+                if (event.target === elements.applicantModal) {
+                    elements.applicantModal.classList.add('hidden');
+                }
+            });
+        }
+
+        // Data fetching and error handling
+        async function fetchData() {
+            elements.loadingScreen.classList.remove('hidden');
+            try {
+                const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvxkaoU0_AHLvTHqsiErgWlFWwdpup0GrtDpLRAnNabbgWRij_oGluCbAdydNNmXXW/exec';
+                const response = await fetch(`${SCRIPT_URL}?action=getApplicants`);
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    applicants = data.data.map(enrichApplicantData);
+                    initializeDashboard();
+                } else {
+                    throw new Error(data.message || 'Failed to fetch data');
+                }
+            } catch (error) {
+                showError('Failed to load data. Please try again later.');
+                console.error('Data fetching error:', error);
+            } finally {
+                elements.loadingScreen.classList.add('hidden');
+            }
+        }
+
+        function enrichApplicantData(applicant) {
+            return {
+                ...applicant,
+                fullName: `${applicant.firstName} ${applicant.lastName}`,
+                applicationDate: new Date(applicant.timestamp)
+            };
+        }
+
+        function showError(message) {
+            alert(message); // Simple alert for errors
+        }
+
+        // Dashboard initialization and updates
+        function initializeDashboard() {
+            populateFilters();
+            initializeCharts();
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            const filteredData = getFilteredData();
+            updateStats(filteredData);
+            updateCharts(filteredData);
+            updateTable(filteredData);
+        }
+
+        function getFilteredData() {
+            return applicants.filter(applicant => {
+                const committeeMatch = !elements.committeeFilter.value || 
+                    applicant.preferredCommittee === elements.committeeFilter.value;
+                const facultyMatch = !elements.facultyFilter.value || 
+                    applicant.faculty === elements.facultyFilter.value;
+                const yearMatch = !elements.yearFilter.value || 
+                    applicant.academicYear === elements.yearFilter.value;
+                const searchMatch = !elements.searchInput.value || 
+                    applicant.fullName.toLowerCase().includes(elements.searchInput.value.toLowerCase());
+                
+                return committeeMatch && facultyMatch && yearMatch && searchMatch;
+            });
+        }
+
+        // Filter population
+        function populateFilters() {
+            const committees = [...new Set(applicants.map(a => a.preferredCommittee))];
+            const faculties = [...new Set(applicants.map(a => a.faculty))];
+            const years = [...new Set(applicants.map(a => a.academicYear))];
+
+            populateSelect(elements.committeeFilter, committees);
+            populateSelect(elements.facultyFilter, faculties);
+            populateSelect(elements.yearFilter, years);
+        }
+
+        function populateSelect(select, options) {
+            select.innerHTML = '<option value="">All</option>';
+            options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                select.appendChild(optionElement);
+            });
+        }
+
+        // Stats updates
+        function updateStats(filteredData) {
+            const totalApplicants = filteredData.length;
+            document.getElementById('totalApplicants').textContent = totalApplicants;
+            
+            const femaleCount = filteredData.filter(a => a.gender === 'Female').length;
+            const maleCount = totalApplicants - femaleCount;
+            const femaleRatio = totalApplicants ? ((femaleCount / totalApplicants) * 100).toFixed(1) : 0;
+            
+            document.getElementById('genderRatio').textContent = `${femaleRatio}%`;
+            document.getElementById('femaleCount').textContent = `Female: ${femaleCount}`;
+            document.getElementById('maleCount').textContent = `Male: ${maleCount}`;
+
+            const facultyCounts = getCounts(filteredData, 'faculty');
+            const topFaculty = getTopItem(facultyCounts);
+            document.getElementById('topFaculty').textContent = topFaculty.item;
+            document.getElementById('topFacultyStats').textContent = 
+                `${topFaculty.count} applicants (${((topFaculty.count / totalApplicants) * 100).toFixed(1)}%)`;
+
+            const committeeCounts = getCounts(filteredData, 'preferredCommittee');
+            const topCommittee = getTopItem(committeeCounts);
+            document.getElementById('topCommittee').textContent = topCommittee.item;
+            document.getElementById('topCommitteeStats').textContent = 
+                `${topCommittee.count} applicants (${((topCommittee.count / totalApplicants) * 100).toFixed(1)}%)`;
+        }
+
+        // Chart initialization and updates
+        function initializeCharts() {
+            const chartContexts = {
+                timelineChart: document.getElementById('timelineChart'),
+                committeeChart: document.getElementById('committeeChart'),
+                facultyChart: document.getElementById('facultyChart'),
+                yearChart: document.getElementById('yearChart')
             };
 
-            const totalApplicantsEl = document.getElementById('totalApplicants');
-            const genderRatioEl = document.getElementById('genderRatio');
-            const startRangeEl = document.getElementById('startRange');
-            const endRangeEl = document.getElementById('endRange');
-            const totalEntriesEl = document.getElementById('totalEntries');
-            const applicantModal = document.getElementById('applicantModal');
-            const modalTitleEl = document.getElementById('modalTitle');
-            const modalContentEl = document.getElementById('modalContent');
+            Object.entries(chartContexts).forEach(([chartId, context]) => {
+                const ctx = context.getContext('2d');
+                charts[chartId] = createChart(chartId, ctx);
+            });
+        }
 
-            // Loading data function
-            async function fetchData() {
-                // Simulate fetch for example purposes
-                setTimeout(() => {
-                    // Populate applicants and update the UI
-                    // applicants = response from fetch
-                    updateDashboard();
-                    document.getElementById('loadingScreen').style.display = 'none';
-                }, 1000);
+        function createChart(chartId, ctx) {
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            };
+
+            switch(chartId) {
+                case 'timelineChart':
+                    return new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            datasets: [{
+                                label: 'Applications',
+                                borderColor: '#3B82F6',
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            ...commonOptions,
+                            scales: {
+                                x: {
+                                    type: 'time',
+                                    time: {
+                                        unit: 'day'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                case 'committeeChart':
+                    return new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            datasets: [{
+                                backgroundColor: colorPalette
+                            }]
+                        },
+                        options: commonOptions
+                    });
+                case 'facultyChart':
+                    return new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            datasets: [{
+                                backgroundColor: colorPalette
+                            }]
+                        },
+                        options: {
+                            ...commonOptions,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                case 'yearChart':
+                    return new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            datasets: [{
+                                backgroundColor: colorPalette
+                            }]
+                        },
+                        options: commonOptions
+                    });
             }
+        }
 
-            function updateDashboard() {
-                // Apply filtering and update UI
-                filteredApplicants = applicants.filter(applicant => {
-                    return (
-                        (filters.committee ? applicant.committee === filters.committee : true) &&
-                        (filters.faculty ? applicant.faculty === filters.faculty : true) &&
-                        (filters.year ? applicant.year === filters.year : true) &&
-                        (filters.search ? applicant.name.toLowerCase().includes(filters.search.toLowerCase()) : true)
-                    );
-                });
-                renderTable(filteredApplicants);
-                updateStats(filteredApplicants);
-                updateCharts(filteredApplicants);
-            }
+        function updateCharts(filteredData) {
+            updateTimelineChart(filteredData);
+            updateDistributionChart(filteredData, 'committeeChart', 'preferredCommittee');
+            updateDistributionChart(filteredData, 'facultyChart', 'faculty');
+            updateDistributionChart(filteredData, 'yearChart', 'academicYear');
+        }
 
-            function renderTable(data) {
-                const tbody = document.getElementById('applicantsTableBody');
-                tbody.innerHTML = '';
+        function updateTimelineChart(filteredData) {
+            const timelineData = getTimelineData(filteredData);
+            charts.timelineChart.data.labels = timelineData.labels;
+            charts.timelineChart.data.datasets[0].data = timelineData.data;
+            charts.timelineChart.update();
+        }
 
-                data.forEach(applicant => {
-                    const row = `<tr>
-                        <td>${applicant.name}</td>
-                        <td>${applicant.committee}</td>
-                        <td>${applicant.faculty}</td>
-                        <td>${applicant.year}</td>
-                        <td><span class="bg-green-100 text-green-800 px-2 py-1 rounded">${applicant.status}</span></td>
-                        <td><button onclick="viewProfile('${applicant.email}')" class="text-blue-600 hover:text-blue-900">View Profile</button></td>
-                    </tr>`;
-                    tbody.insertAdjacentHTML('beforeend', row);
-                });
+        function updateDistributionChart(filteredData, chartId, property) {
+            const counts = getCounts(filteredData, property);
+            charts[chartId].data.labels = Object.keys(counts);
+            charts[chartId].data.datasets[0].data = Object.values(counts);
+            charts[chartId].update();
+        }
 
-                totalEntriesEl.textContent = data.length;
-            }
+        // Table updates
+        function updateTable(filteredData) {
+            const tbody = document.getElementById('applicantsTableBody');
+            tbody.innerHTML = '';
 
-            function viewProfile(email) {
-                const applicant = applicants.find(a => a.email === email);
-                if (!applicant) return;
-                modalTitleEl.textContent = `${applicant.name} Profile`;
-                modalContentEl.innerHTML = `
-                    <p><strong>Email:</strong> ${applicant.email}</p>
-                    <p><strong>Committee:</strong> ${applicant.committee}</p>
-                    <p><strong>Faculty:</strong> ${applicant.faculty}</p>
+            filteredData.forEach(applicant => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <span class="text-gray-500 font-medium">${applicant.firstName[0]}${applicant.lastName[0]}</span>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${applicant.fullName}</div>
+                                <div class="text-sm text-gray-500">${applicant.email}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            ${applicant.preferredCommittee}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${applicant.faculty}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${applicant.academicYear}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            Pending
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="showApplicantProfile('${applicant.email}')" class="text-blue-600 hover:text-blue-900">View Profile</button>
+                    </td>
                 `;
-                applicantModal.classList.add('active');
-            }
-
-            document.getElementById('closeModal').addEventListener('click', () => {
-                applicantModal.classList.remove('active');
             });
 
-            fetchData();
-        });
+            document.getElementById('totalEntries').textContent = filteredData.length;
+        }
+
+        // Utility functions
+        function getCounts(data, property) {
+            return data.reduce((acc, item) => {
+                acc[item[property]] = (acc[item[property]] || 0) + 1;
+                return acc;
+            }, {});
+        }
+
+        function getTopItem(counts) {
+            const entries = Object.entries(counts);
+            if (entries.length === 0) return { item: '-', count: 0 };
+            
+            const [item, count] = entries.reduce((max, current) => 
+                current[1] > max[1] ? current : max
+            );
+            return { item, count };
+        }
+
+        function getTimelineData(filteredData) {
+            const dates = filteredData.map(a => a.applicationDate)
+                .sort((a, b) => a - b);
+            
+            if (dates.length === 0) return { labels: [], data: [] };
+
+            const dailyCounts = dates.reduce((acc, date) => {
+                const day = date.toISOString().split('T')[0];
+                acc[day] = (acc[day] || 0) + 1;
+                return acc;
+            }, {});
+
+            return {
+                labels: Object.keys(dailyCounts),
+                data: Object.values(dailyCounts)
+            };
+        }
+
+        initEventListeners();
+        fetchData();
     </script>
 </body>
 </html>
