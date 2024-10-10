@@ -235,7 +235,7 @@ const closeModal = document.getElementsByClassName('close')[0];
 
 // Fetch data from Google Apps Script
 async function fetchData() {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIAqze1TXNdRfM1QrbjZwDscnc5Xef4c54LNyD5muo78dChG6Z8L56yJYDCbjpw3Gr/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzoqo0lRZGCyvBT15jTa6OMB0hhw9l055tYmlZPwPeCp7gvg_ixYYKdADbfHgbQmz70/exec';
     try {
         const response = await fetch(`${SCRIPT_URL}?action=getApplicants`, {
             method: 'GET',
