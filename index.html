@@ -280,7 +280,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let filteredApplicants = [];
     let currentPage = 1;
     const itemsPerPage = 10;
-
+// Chart instances
+    let timelineChart, committeeChart;
     const filters = {
         committee: '',
         faculty: '',
@@ -300,8 +301,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const modalContentEl = document.getElementById('modalContent');
     const loadingOverlay = document.getElementById('loading-overlay');
 
-    // Chart instances
-    let timelineChart, committeeChart;
+    
 
     // Fetch data from Google Apps Script
    async function fetchData() {
@@ -339,6 +339,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateFilters();
         updateDashboard();
         initializeCharts();
+        updateCharts();
         attachEventListeners();
     }
 
@@ -499,6 +500,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function updateCharts() {
         // Update Timeline Chart
+        if (!timelineChart || !committeeChart) {
+        console.error('Charts are not initialized');
+        return;
+    }
+        document.getElementById('timelineChart').classList.add('loading');
+    document.getElementById('committeeChart').classList.add('loading');
         const applicationDates = filteredApplicants.map(a => a.applicationDate).sort();
         const dateCountMap = applicationDates.reduce((acc, date) => {
             acc[date] = (acc[date] || 0) + 1;
@@ -519,7 +526,12 @@ document.addEventListener("DOMContentLoaded", function () {
         committeeChart.data.datasets[0].data = Object.values(committeeCounts);
         committeeChart.update();
     }
-
+document.getElementById('applicantsTableBody').addEventListener('click', function(event) {
+    if (event.target.classList.contains('view-profile-btn')) {
+        const id = event.target.dataset.id;
+        viewProfile(id);
+    }
+});
     function attachEventListeners() {
         document.getElementById('committeeFilter').addEventListener('change', handleFilterChange);
         document.getElementById('facultyFilter').addEventListener('change', handleFilterChange);
