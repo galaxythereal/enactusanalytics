@@ -649,7 +649,46 @@
                 data: Object.values(dailyCounts)
             };
         }
+ function exportData() {
+        const csvData = [];
+        const headers = ['Full Name', 'Email', 'Committee', 'Faculty', 'Academic Year'];
 
+        // Push the headers to the CSV data
+        csvData.push(headers.join(','));
+
+        // Loop through filtered applicants and push data to CSV
+        const filteredData = getFilteredData();
+        filteredData.forEach(applicant => {
+            const row = [
+                applicant.fullName,
+                applicant.email,
+                applicant.preferredCommittee,
+                applicant.faculty,
+                applicant.academicYear
+            ];
+            csvData.push(row.join(','));
+        });
+
+        // Create a Blob from the CSV data
+        const csvBlob = new Blob([csvData.join('\n')], { type: 'text/csv' });
+        const url = URL.createObjectURL(csvBlob);
+
+        // Create a link to download the file
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = 'applicants_data.csv';
+
+        // Append the link to the body and click to trigger download
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+
+        // Clean up
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(url);
+    }
+
+    initEventListeners();
+    fetchData();
         initEventListeners();
         fetchData();
     </script>
