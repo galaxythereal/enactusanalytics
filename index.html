@@ -129,7 +129,18 @@
                 </div>
             </div>
         </section>
-
+<div class="card p-6">
+    <h3 class="text-xl font-semibold text-gray-800 mb-4">Gender Distribution</h3>
+    <div class="chart-container">
+        <canvas id="genderChart"></canvas>
+    </div>
+</div>
+<div class="card p-6">
+    <h3 class="text-xl font-semibold text-gray-800 mb-4">Academic Year Distribution</h3>
+    <div class="chart-container">
+        <canvas id="yearChart"></canvas>
+    </div>
+</div>
         <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="card p-6">
                 <div class="flex items-center">
@@ -304,28 +315,34 @@ document.addEventListener("DOMContentLoaded", function () {
     
 
     // Fetch data from Google Apps Script
-   async function fetchData() {
-    loadingOverlay.style.display = 'flex';
+ async function fetchData() {
     try {
-        const response = await fetch('https://script.google.com/macros/s/AKfycbyp0Dafjvn7hGgWnPAmvLFE4maxtNML4StfvoeoKMmDVJLwJda3KJRdbkx-RIP3I9lt/exec');
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+        const applicantsResponse = await fetch('https://script.google.com/macros/s/AKfycbyjAoTbbqFp5Zw2LsC1F__4cwLI_9fTt0DWw_7yasOB43Eo3TljPt0WbMqB-2sW4kTm/exec?action=getApplicants');
+        const applicantsData = await applicantsResponse.json();
+        
+        const statsResponse = await fetch('https://script.google.com/.../exec?action=getStats');
+        const statsData = await statsResponse.json();
+        
+        if (applicantsData.status === "error" || statsData.status === "error") {
+            throw new Error(applicantsData.message || statsData.message);
         }
-        const data = await response.json();
-        if (data.status === "error") {
-            throw new Error(data.message);
-        }
-        applicants = data.data.map(row => ({
-            id: row['Timestamp'],  // Assuming 'Timestamp' is unique
-            name: row['Full Name'],
-            email: row['Email Address'],
-            committee: row['Preferred Committee'],
-            faculty: row['Faculty'],
-            year: row['Academic Year'],
-            status: 'Pending',  // You might want to add a status column in your sheet
-            gender: row['Gender'],
+        
+        // Process applicants data
+        applicants = applicantsData.data.map(row => ({
+            id: row['Timestamp'],
+            name: row['Full Name'] || 'N/A',
+            email: row['Email Address'] || 'N/A',
+            committee: row['Preferred Committee'] || 'N/A',
+            faculty: row['Faculty'] || 'N/A',
+            year: row['Academic Year'] || 'N/A',
+            status: 'Pending',
+            gender: row['Gender'] || 'N/A',
             applicationDate: new Date(row['Timestamp']).toISOString().split('T')[0]
         }));
+        
+        // Process stats data
+        stats = statsData.data;
+        
         initializeDashboard();
     } catch (error) {
         console.error('Error fetching data:', error);
@@ -334,7 +351,6 @@ document.addEventListener("DOMContentLoaded", function () {
         loadingOverlay.style.display = 'none';
     }
 }
-
     function initializeDashboard() {
         updateFilters();
         updateDashboard();
@@ -380,31 +396,34 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    function updateStats() {
-        totalApplicantsEl.textContent = filteredApplicants.length;
-        
-        const genderCounts = filteredApplicants.reduce((acc, applicant) => {
-            acc[applicant.gender] = (acc[applicant.gender] || 0) + 1;
-            return acc;
-        }, {});
-        genderRatioEl.textContent = `${genderCounts['Male'] || 0}:${genderCounts['Female'] || 0}`;
+  function updateStats() {
+    const totalApplicants = filteredApplicants.length;
+    totalApplicantsEl.textContent = totalApplicants;
 
-        const facultyCounts = filteredApplicants.reduce((acc, applicant) => {
-            acc[applicant.faculty] = (acc[applicant.faculty] || 0) + 1;
-            return acc;
-        }, {});
-        const topFaculty = Object.entries(facultyCounts).sort((a, b) => b[1] - a[1])[0];
-        topFacultyEl.textContent = topFaculty ? topFaculty[0] : '-';
-        document.getElementById('topFacultyPercentage').textContent = topFaculty ? `${((topFaculty[1] / filteredApplicants.length) * 100).toFixed(1)}%` : '0%';
+    const genderCounts = filteredApplicants.reduce((acc, applicant) => {
+        acc[applicant.gender] = (acc[applicant.gender] || 0) + 1;
+        return acc;
+    }, {});
+    const maleCount = genderCounts['Male'] || 0;
+    const femaleCount = genderCounts['Female'] || 0;
+    genderRatioEl.textContent = `${maleCount}:${femaleCount}`;
 
-        const committeeCounts = filteredApplicants.reduce((acc, applicant) => {
-            acc[applicant.committee] = (acc[applicant.committee] || 0) + 1;
-            return acc;
-        }, {});
-        const popularCommittee = Object.entries(committeeCounts).sort((a, b) => b[1] - a[1])[0];
-        popularCommitteeEl.textContent = popularCommittee ? popularCommittee[0] : '-';
-        document.getElementById('popularCommitteePercentage').textContent = popularCommittee ? `${((popularCommittee[1] / filteredApplicants.length) * 100).toFixed(1)}%` : '0%';
-    }
+    const facultyCounts = filteredApplicants.reduce((acc, applicant) => {
+        acc[applicant.faculty] = (acc[applicant.faculty] || 0) + 1;
+        return acc;
+    }, {});
+    const topFaculty = Object.entries(facultyCounts).sort((a, b) => b[1] - a[1])[0];
+    topFacultyEl.textContent = topFaculty ? topFaculty[0] : '-';
+    document.getElementById('topFacultyPercentage').textContent = topFaculty ? `${((topFaculty[1] / totalApplicants) * 100).toFixed(1)}%` : '0%';
+
+    const committeeCounts = filteredApplicants.reduce((acc, applicant) => {
+        acc[applicant.committee] = (acc[applicant.committee] || 0) + 1;
+        return acc;
+    }, {});
+    const popularCommittee = Object.entries(committeeCounts).sort((a, b) => b[1] - a[1])[0];
+    popularCommitteeEl.textContent = popularCommittee ? popularCommittee[0] : '-';
+    document.getElementById('popularCommitteePercentage').textContent = popularCommittee ? `${((popularCommittee[1] / totalApplicants) * 100).toFixed(1)}%` : '0%';
+}
 
     function renderTable() {
         const tbody = document.getElementById('applicantsTableBody');
@@ -457,46 +476,91 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function initializeCharts() {
-        const timelineCtx = document.getElementById('timelineChart').getContext('2d');
-        timelineChart = new Chart(timelineCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Applications',
-                    data: [],
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
+    if (timelineChart) timelineChart.destroy();
+    if (committeeChart) committeeChart.destroy();
+    if (genderChart) genderChart.destroy();
+    if (yearChart) yearChart.destroy();
+            const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+    timelineChart = new Chart(timelineCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Applications',
+                data: [],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
 
-        const committeeCtx = document.getElementById('committeeChart').getContext('2d');
-        committeeChart = new Chart(committeeCtx, {
-            type: 'doughnut',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.8)',
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 206, 86, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(153, 102, 255, 0.8)'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
+    const committeeCtx = document.getElementById('committeeChart').getContext('2d');
+    committeeChart = new Chart(committeeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+        const genderCtx = document.getElementById('genderChart').getContext('2d');
+    genderChart = new Chart(genderCtx, {
+        type: 'pie',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    const yearCtx = document.getElementById('yearChart').getContext('2d');
+    yearChart = new Chart(yearCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Students',
+                data: [],
+                backgroundColor: 'rgba(75, 192, 192, 0.8)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
             }
-        });
-    }
+        }
+    });
+}
+
 
     function updateCharts() {
         // Update Timeline Chart
@@ -525,6 +589,22 @@ document.addEventListener("DOMContentLoaded", function () {
         committeeChart.data.labels = Object.keys(committeeCounts);
         committeeChart.data.datasets[0].data = Object.values(committeeCounts);
         committeeChart.update();
+        const genderCounts = filteredApplicants.reduce((acc, applicant) => {
+        acc[applicant.gender] = (acc[applicant.gender] || 0) + 1;
+        return acc;
+    }, {});
+    genderChart.data.labels = Object.keys(genderCounts);
+    genderChart.data.datasets[0].data = Object.values(genderCounts);
+    genderChart.update();
+
+    // Update Year Chart
+    const yearCounts = filteredApplicants.reduce((acc, applicant) => {
+        acc[applicant.year] = (acc[applicant.year] || 0) + 1;
+        return acc;
+    }, {});
+    yearChart.data.labels = Object.keys(yearCounts);
+    yearChart.data.datasets[0].data = Object.values(yearCounts);
+    yearChart.update();
     }
 document.getElementById('applicantsTableBody').addEventListener('click', function(event) {
     if (event.target.classList.contains('view-profile-btn')) {
