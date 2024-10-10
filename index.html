@@ -234,35 +234,22 @@ const applicantDetails = document.getElementById('applicantDetails');
 const closeModal = document.getElementsByClassName('close')[0];
 
 // Fetch data from Google Apps Script
-async function fetchData() {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzoqo0lRZGCyvBT15jTa6OMB0hhw9l055tYmlZPwPeCp7gvg_ixYYKdADbfHgbQmz70/exec';
-    try {
-        const response = await fetch(`${SCRIPT_URL}?action=getApplicants`, {
-            method: 'GET',
-            mode: 'cors',
-            headers: {
-                'Accept': 'application/json',
-            },
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const result = await response.json();
-        if (result.status === "success") {
-            onDataFetched(result.data);
-        } else {
-            throw new Error(result.message || "Unknown error occurred");
-        }
-    } catch (error) {
-        console.error("Could not fetch data:", error);
-    }
+function fetchData() {
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxY3pBY2BHGFfiGkwwtRuJ2Nlj3VmcUk1EOxryv4j3vaEoBtvf5UUcl9V6Esr7BCfHY/exec';
+  const script = document.createElement('script');
+  script.src = `${SCRIPT_URL}?action=getApplicants&callback=onDataFetched`;
+  document.body.appendChild(script);
 }
 
-function onDataFetched(data) {
-    applicants = data;
+function onDataFetched(response) {
+  if (response.status === "success") {
+    applicants = response.data;
     populateFilters();
     renderTable();
     initCharts();
+  } else {
+    console.error("Could not fetch data:", response.message);
+  }
 }
 
 // Populate filter dropdowns
