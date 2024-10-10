@@ -348,10 +348,9 @@ async function fetchData() {
 }
     function initializeDashboard() {
         updateFilters();
-        updateDashboard();
         initializeCharts();
-        updateCharts();
-        attachEventListeners();
+        updateDashboard();
+            attachEventListeners();
     }
 
     function updateFilters() {
@@ -470,12 +469,14 @@ async function fetchData() {
         document.getElementById('nextPage').disabled = currentPage === totalPages;
     }
 
-    function initializeCharts() {
-    if (timelineChart) timelineChart.destroy();
-    if (committeeChart) committeeChart.destroy();
-    if (genderChart) genderChart.destroy();
-    if (yearChart) yearChart.destroy();
-            const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+    let timelineChart, committeeChart, genderChart, yearChart;
+
+function initializeCharts() {
+    // Timeline Chart
+    const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+    if (timelineChart instanceof Chart) {
+        timelineChart.destroy();
+    }
     timelineChart = new Chart(timelineCtx, {
         type: 'line',
         data: {
@@ -493,7 +494,11 @@ async function fetchData() {
         }
     });
 
+    // Committee Chart
     const committeeCtx = document.getElementById('committeeChart').getContext('2d');
+    if (committeeChart instanceof Chart) {
+        committeeChart.destroy();
+    }
     committeeChart = new Chart(committeeCtx, {
         type: 'doughnut',
         data: {
@@ -514,7 +519,12 @@ async function fetchData() {
             maintainAspectRatio: false
         }
     });
-        const genderCtx = document.getElementById('genderChart').getContext('2d');
+
+    // Gender Chart
+    const genderCtx = document.getElementById('genderChart').getContext('2d');
+    if (genderChart instanceof Chart) {
+        genderChart.destroy();
+    }
     genderChart = new Chart(genderCtx, {
         type: 'pie',
         data: {
@@ -533,7 +543,11 @@ async function fetchData() {
         }
     });
 
+    // Year Chart
     const yearCtx = document.getElementById('yearChart').getContext('2d');
+    if (yearChart instanceof Chart) {
+        yearChart.destroy();
+    }
     yearChart = new Chart(yearCtx, {
         type: 'bar',
         data: {
@@ -555,7 +569,6 @@ async function fetchData() {
         }
     });
 }
-
 
     function updateCharts() {
         // Update Timeline Chart
