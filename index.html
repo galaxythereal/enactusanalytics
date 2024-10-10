@@ -225,7 +225,7 @@ tr:hover {
 }
 // Global variables
  // Global variables
-    let applicants = [];
+     let applicants = [];
     const committeeFilter = document.getElementById('committeeFilter');
     const facultyFilter = document.getElementById('facultyFilter');
     const searchInput = document.getElementById('searchInput');
@@ -234,26 +234,23 @@ tr:hover {
     const applicantDetails = document.getElementById('applicantDetails');
     const closeModal = document.getElementsByClassName('close')[0];
 
-    // Fetch data from Google Apps Script
-    async function fetchData() {
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3aiBSyL9tnUJE7UTjdS0HphlJdujXcocTdst0qU4stjS1UZSUCghjKTyWLOKpE5vn/exec';
-        try {
-            const response = await fetch(`${SCRIPT_URL}?action=getApplicants`, {
-                method: 'GET',
-                mode: 'cors',
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const result = await response.json();
-            if (result.status === "success") {
-                onDataFetched(result.data);
+    // Fetch data from Google Apps Script using JSONP
+    function fetchData() {
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxPH7W_XFs7K9wo0NDqDFRlHXpo13ecQKyF8nXjYjFYei6NAo5S3xdfpsUTttVKuVIr/exec';
+        const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
+        window[callbackName] = function(response) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            if (response.status === "success") {
+                onDataFetched(response.data);
             } else {
-                throw new Error(result.message || "Unknown error occurred");
+                console.error("Could not fetch data:", response.message);
             }
-        } catch (error) {
-            console.error("Could not fetch data:", error);
-        }
+        };
+
+        const script = document.createElement('script');
+        script.src = `${SCRIPT_URL}?action=getApplicants&callback=${callbackName}`;
+        document.body.appendChild(script);
     }
 
     function onDataFetched(data) {
