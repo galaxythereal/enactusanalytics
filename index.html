@@ -117,8 +117,8 @@
                         </select>
                     </div>
                     <div>
-                        <label for="yearFilter" class="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
-                        <select id="yearFilter" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <label for="academicYearFilter" class="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
+                        <select id="academicYearFilter" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="">All Years</option>
                         </select>
                     </div>
@@ -138,7 +138,7 @@
 <div class="card p-6">
     <h3 class="text-xl font-semibold text-gray-800 mb-4">Academic Year Distribution</h3>
     <div class="chart-container">
-        <canvas id="yearChart"></canvas>
+        <canvas id="academicYearChart"></canvas>
     </div>
 </div>
         <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -290,7 +290,8 @@
                 </div>
             </div>
         </div>
-    </div><script>
+    </div>
+    <script>
 document.addEventListener("DOMContentLoaded", function () {
     let applicants = [];
     let filteredApplicants = [];
@@ -298,10 +299,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const itemsPerPage = 10;
 
     // Chart instances
-    let timelineChart, committeeChart, genderChart, yearChart, facultyChart;
+    let timelineChart, committeeChart, genderChart, academicYearChart, facultyChart;
 
     const filters = {
-        preferredCommittee: '',
+        committee: '',
         faculty: '',
         academicYear: '',
         search: ''
@@ -319,6 +320,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const modalContentEl = document.getElementById('modalContent');
     const loadingOverlay = document.getElementById('loading-overlay');
 
+    // Fetch data from Google Apps Script
     async function fetchData() {
         loadingOverlay.style.display = 'flex';
         try {
@@ -348,68 +350,70 @@ document.addEventListener("DOMContentLoaded", function () {
                 linkedin: row['linkedin'] || '',
                 portfolio: row['portfolio'] || '',
                 Timestamp: row['Timestamp'] || '',
-                projectsQ1: row['projectsQ1'] || '',
-                projectsQ2: row['projectsQ2'] || '',
-                projectsQ3: row['projectsQ3'] || '',
-                logisticsQ1: row['logisticsQ1'] || '',
-                logisticsQ2: row['logisticsQ2'] || '',
-                logisticsQ3: row['logisticsQ3'] || '',
-                presentationQ1: row['presentationQ1'] || '',
-                presentationQ2: row['presentationQ2'] || '',
-                presentationQ3: row['presentationQ3'] || '',
-                graphicDesignQ1: row['graphicDesignQ1'] || '',
-                graphicDesignQ2: row['graphicDesignQ2'] || '',
-                graphicDesignQ3: row['graphicDesignQ3'] || '',
-                videoPhotoQ1: row['videoPhotoQ1'] || '',
-                videoPhotoQ2: row['videoPhotoQ2'] || '',
-                videoPhotoQ3: row['videoPhotoQ3'] || '',
-                hrQ1: row['hrQ1'] || '',
-                hrQ2: row['hrQ2'] || '',
-                hrQ3: row['hrQ3'] || '',
-                prFrQ1: row['prFrQ1'] || '',
-                prFrQ2: row['prFrQ2'] || '',
-                prFrQ3: row['prFrQ3'] || '',
-                digitalMarketingQ1: row['digitalMarketingQ1'] || '',
-                digitalMarketingQ2: row['digitalMarketingQ2'] || '',
-                digitalMarketingQ3: row['digitalMarketingQ3'] || ''
-            }));
-            
-            initializeDashboard();
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            alert('Failed to fetch data. Please try again later.');
-        } finally {
-            loadingOverlay.style.display = 'none';
-        }
+    projectsQ1: row['projectsQ1'] || '',
+    projectsQ2: row['projectsQ2'] || '',
+    projectsQ3: row['projectsQ3'] || '',
+    logisticsQ1: row['logisticsQ1'] || '',
+    logisticsQ2: row['logisticsQ2'] || '',
+    logisticsQ3: row['logisticsQ3'] || '',
+    presentationQ1: row['presentationQ1'] || '',
+    presentationQ2: row['presentationQ2'] || '',
+    presentationQ3: row['presentationQ3'] || '',
+    graphicDesignQ1: row['graphicDesignQ1'] || '',
+    graphicDesignQ2: row['graphicDesignQ2'] || '',
+    graphicDesignQ3: row['graphicDesignQ3'] || '',
+    videoPhotoQ1: row['videoPhotoQ1'] || '',
+    videoPhotoQ2: row['videoPhotoQ2'] || '',
+    videoPhotoQ3: row['videoPhotoQ3'] || '',
+    hrQ1: row['hrQ1'] || '',
+    hrQ2: row['hrQ2'] || '',
+    hrQ3: row['hrQ3'] || '',
+    prFrQ1: row['prFrQ1'] || '',
+    prFrQ2: row['prFrQ2'] || '',
+    prFrQ3: row['prFrQ3'] || '',
+    digitalMarketingQ1: row['digitalMarketingQ1'] || '',
+    digitalMarketingQ2: row['digitalMarketingQ2'] || '',
+    digitalMarketingQ3: row['digitalMarketingQ3'] || ''
+}));
+        
+        console.log('Processed applicants:', applicants);
+        
+        stats = data.stats;
+        console.log('Stats:', stats);
+        
+        initializeDashboard();
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        alert('Failed to fetch data. Please try again later.');
+    } finally {
+        loadingOverlay.style.display = 'none';
     }
-
+}
     function initializeDashboard() {
         updateFilters();
         initializeCharts();
         updateDashboard();
-        attachEventListeners();
+            attachEventListeners();
     }
 
     function updateFilters() {
-        const committees = [...new Set(applicants.map(a => a.preferredCommittee))];
+        const committees = [...new Set(applicants.map(a => a.committee))];
         const faculties = [...new Set(applicants.map(a => a.faculty))];
-        const years = [...new Set(applicants.map(a => a.academicYear))];
+        const academicYears = [...new Set(applicants.map(a => a.academicYear))];
 
-        populateSelect('preferredCommitteeFilter', committees);
+        populateSelect('committeeFilter', committees);
         populateSelect('facultyFilter', faculties);
-        populateSelect('academicYearFilter', years);
+        populateSelect('academicYearFilter', academicYears);
     }
 
     function populateSelect(id, options) {
         const select = document.getElementById(id);
         select.innerHTML = '<option value="">All</option>';
         options.forEach(option => {
-            if (option) {
-                const optionEl = document.createElement('option');
-                optionEl.value = option;
-                optionEl.textContent = option;
-                select.appendChild(optionEl);
-            }
+            const optionEl = document.createElement('option');
+            optionEl.value = option;
+            optionEl.textContent = option;
+            select.appendChild(optionEl);
         });
     }
 
@@ -422,14 +426,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function applyFilters() {
         filteredApplicants = applicants.filter(applicant => {
-            return (filters.preferredCommittee ? applicant.preferredCommittee === filters.preferredCommittee : true) &&
+            return (filters.committee ? applicant.committee === filters.committee : true) &&
                    (filters.faculty ? applicant.faculty === filters.faculty : true) &&
                    (filters.academicYear ? applicant.academicYear === filters.academicYear : true) &&
-                   (filters.search ? (applicant.firstName + ' ' + applicant.lastName).toLowerCase().includes(filters.search.toLowerCase()) : true);
+                   (filters.search ? applicant.name.toLowerCase().includes(filters.search.toLowerCase()) : true);
         });
     }
 
-    function updateStats() {
+  function updateStats() {
         const totalApplicants = filteredApplicants.length;
         totalApplicantsEl.textContent = totalApplicants;
 
@@ -439,58 +443,52 @@ document.addEventListener("DOMContentLoaded", function () {
         }, {});
         const maleCount = genderCounts['Male'] || 0;
         const femaleCount = genderCounts['Female'] || 0;
-        const ratio = maleCount && femaleCount ? `${maleCount}:${femaleCount}` : 
-                     maleCount ? 'All Male' : femaleCount ? 'All Female' : 'No data';
-        genderRatioEl.textContent = ratio;
+        genderRatioEl.textContent = `${maleCount}:${femaleCount}`;
 
         const facultyCounts = filteredApplicants.reduce((acc, applicant) => {
-            if (applicant.faculty) {
-                acc[applicant.faculty] = (acc[applicant.faculty] || 0) + 1;
-            }
+            acc[applicant.faculty] = (acc[applicant.faculty] || 0) + 1;
             return acc;
         }, {});
         const topFaculty = Object.entries(facultyCounts).sort((a, b) => b[1] - a[1])[0];
         topFacultyEl.textContent = topFaculty ? topFaculty[0] : '-';
-        document.getElementById('topFacultyPercentage').textContent = 
-            topFaculty ? `${((topFaculty[1] / totalApplicants) * 100).toFixed(1)}%` : '0%';
+        document.getElementById('topFacultyPercentage').textContent = topFaculty ? `${((topFaculty[1] / totalApplicants) * 100).toFixed(1)}%` : '0%';
 
         const committeeCounts = filteredApplicants.reduce((acc, applicant) => {
-            if (applicant.preferredCommittee) {
-                acc[applicant.preferredCommittee] = (acc[applicant.preferredCommittee] || 0) + 1;
-            }
+            acc[applicant.preferredCommittee] = (acc[applicant.preferredCommittee] || 0) + 1;
             return acc;
         }, {});
         const popularCommittee = Object.entries(committeeCounts).sort((a, b) => b[1] - a[1])[0];
         popularCommitteeEl.textContent = popularCommittee ? popularCommittee[0] : '-';
-        document.getElementById('popularCommitteePercentage').textContent = 
-            popularCommittee ? `${((popularCommittee[1] / totalApplicants) * 100).toFixed(1)}%` : '0%';
+        document.getElementById('popularCommitteePercentage').textContent = popularCommittee ? `${((popularCommittee[1] / totalApplicants) * 100).toFixed(1)}%` : '0%';
     }
 
-    function renderTable() {
-        const tbody = document.getElementById('applicantsTableBody');
-        tbody.innerHTML = '';
+function renderTable() {
+    const tbody = document.getElementById('applicantsTableBody');
+    tbody.innerHTML = '';
 
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const pageApplicants = filteredApplicants.slice(start, end);
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageApplicants = filteredApplicants.slice(start, end);
 
-        pageApplicants.forEach(applicant => {
-            const row = `
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap">${applicant.firstName} ${applicant.lastName}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${applicant.preferredCommittee}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${applicant.faculty}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${applicant.academicYear}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onclick="viewProfile('${applicant.id}')" class="text-indigo-600 hover:text-indigo-900">View Profile</button>
-                    </td>
-                </tr>
-            `;
-            tbody.insertAdjacentHTML('beforeend', row);
-        });
+    pageApplicants.forEach(applicant => {
+        const row = `
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap">${applicant.firstName} ${applicant.lastName}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${applicant.preferredCommittee}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${applicant.faculty}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${applicant.academicYear}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button onclick="viewProfile('${applicant.id}')" class="text-indigo-600 hover:text-indigo-900">View Profile</button>
+                </td>
+            </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', row);
+    });
 
-        updatePagination();
-    }
+    updatePagination();
+}
+
+    
 
     function updatePagination() {
         const totalPages = Math.ceil(filteredApplicants.length / itemsPerPage);
@@ -502,134 +500,138 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('nextPage').disabled = currentPage === totalPages;
     }
 
-    function initializeCharts() {
-        // Timeline Chart
-        const timelineCtx = document.getElementById('timelineChart').getContext('2d');
-        if (timelineChart instanceof Chart) {
-            timelineChart.destroy();
-        }
-        timelineChart = new Chart(timelineCtx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Applications',
-                    data: [],
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
 
-        // Committee Chart
-        const committeeCtx = document.getElementById('committeeChart').getContext('2d');
-        if (committeeChart instanceof Chart) {
-            committeeChart.destroy();
-        }
-        committeeChart = new Chart(committeeCtx, {
-            type: 'doughnut',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.8)',
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 206, 86, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(153, 102, 255, 0.8)'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-
-        // Gender Chart
-        const genderCtx = document.getElementById('genderChart').getContext('2d');
-        if (genderChart instanceof Chart) {
-            genderChart.destroy();
-        }
-        genderChart = new Chart(genderCtx, {
-            type: 'pie',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.8)',
-                        'rgba(54, 162, 235, 0.8)'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-
-        // Faculty Chart
-        const facultyCtx = document.getElementById('facultyChart').getContext('2d');
-        if (facultyChart instanceof Chart) {
-            facultyChart.destroy();
-        }
-        facultyChart = new Chart(facultyCtx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Applicants',
-                    data: [],
-                    backgroundColor: 'rgba(153, 102, 255, 0.8)'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        // Year Chart
-        const yearCtx = document.getElementById('yearChart').getContext('2d');
-        if (yearChart instanceof Chart) {
-            yearChart.destroy();
-        }
-        yearChart = new Chart(yearCtx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Students',
-                    data: [],
-                    backgroundColor: 'rgba(75, 192, 192, 0.8)'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+function initializeCharts() {
+    // Timeline Chart
+    const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+    if (timelineChart instanceof Chart) {
+        timelineChart.destroy();
     }
+    timelineChart = new Chart(timelineCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Applications',
+                data: [],
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Committee Chart
+    const committeeCtx = document.getElementById('committeeChart').getContext('2d');
+    if (committeeChart instanceof Chart) {
+        committeeChart.destroy();
+    }
+    committeeChart = new Chart(committeeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Gender Chart
+    const genderCtx = document.getElementById('genderChart').getContext('2d');
+    if (genderChart instanceof Chart) {
+        genderChart.destroy();
+    }
+    genderChart = new Chart(genderCtx, {
+        type: 'pie',
+        data: {
+            labels: [],
+            datasets: [{
+                data: [],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+// Faculty Chart
+    const facultyCtx = document.getElementById('facultyChart').getContext('2d');
+    facultyChart = new Chart(facultyCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Applicants',
+                data: [],
+                backgroundColor: 'rgba(153, 102, 255, 0.8)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+
+    // Year Chart
+    const academicYearCtx = document.getElementById('academicYearChart').getContext('2d');
+    if (academicYearChart instanceof Chart) {
+        academicYearChart.destroy();
+    }
+    academicYearChart = new Chart(academicYearCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Students',
+                data: [],
+                backgroundColor: 'rgba(75, 192, 192, 0.8)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
 
     function updateCharts() {
         // Update Timeline Chart
-        const applicationDates = filteredApplicants.map(a => new Date(a.Timestamp).toLocaleDateString()).sort();
+        if (!timelineChart || !committeeChart) {
+        console.error('Charts are not initialized');
+        return;
+    }
+        document.getElementById('timelineChart').classList.add('loading');
+    document.getElementById('committeeChart').classList.add('loading');
+        const applicationDates = filteredApplicants.map(a => a.applicationDate).sort();
         const dateCountMap = applicationDates.reduce((acc, date) => {
             acc[date] = (acc[date] || 0) + 1;
             return acc;
@@ -638,156 +640,176 @@ document.addEventListener("DOMContentLoaded", function () {
         timelineChart.data.labels = Object.keys(dateCountMap);
         timelineChart.data.datasets[0].data = Object.values(dateCountMap);
         timelineChart.update();
+ // Update Faculty Chart
+    const facultyCounts = filteredApplicants.reduce((acc, applicant) => {
+        acc[applicant.faculty] = (acc[applicant.faculty] || 0) + 1;
+        return acc;
+    }, {});
+    facultyChart.data.labels = Object.keys(facultyCounts);
+    facultyChart.data.datasets[0].data = Object.values(facultyCounts);
+    facultyChart.update();
 
+   
         // Update Committee Chart
         const committeeCounts = filteredApplicants.reduce((acc, applicant) => {
-            if (applicant.preferredCommittee) {
-                acc[applicant.preferredCommittee] = (acc[applicant.preferredCommittee] || 0) + 1;
-            }
+            acc[applicant.preferredCommittee] = (acc[applicant.preferredCommittee] || 0) + 1;
             return acc;
         }, {});
+
         committeeChart.data.labels = Object.keys(committeeCounts);
         committeeChart.data.datasets[0].data = Object.values(committeeCounts);
         committeeChart.update();
-
-        // Update Gender Chart
         const genderCounts = filteredApplicants.reduce((acc, applicant) => {
-            if (applicant.gender) {
-                acc[applicant.gender] = (acc[applicant.gender] || 0) + 1;
-            }
-            return acc;
-        }, {});
-        genderChart.data.labels = Object.keys(genderCounts);
-        genderChart.data.datasets[0].data = Object.values(genderCounts);
-        genderChart.update();
+        acc[applicant.gender] = (acc[applicant.gender] || 0) + 1;
+        return acc;
+    }, {});
+    genderChart.data.labels = Object.keys(genderCounts);
+    genderChart.data.datasets[0].data = Object.values(genderCounts);
+    genderChart.update();
 
-        // Update Faculty Chart
-        const facultyCounts = filteredApplicants.reduce((acc, applicant) => {
-            if (applicant.faculty) {
-                acc[applicant.faculty] = (acc[applicant.faculty] || 0) + 1;
-            }
-            return acc;
-        }, {});
-        facultyChart.data.labels = Object.keys(facultyCounts);
-        facultyChart.data.datasets[0].data = Object.values(facultyCounts);
-        facultyChart.update();
-
-        // Update Year Chart
-        const yearCounts = filteredApplicants.reduce((acc, applicant) => {
-            if (applicant.academicYear) {
-                acc[applicant.academicYear] = (acc[applicant.academicYear] || 0) + 1;
-            }
-            return acc;
-        }, {});
-        yearChart.data.labels = Object.keys(yearCounts);
-        yearChart.data.datasets[0].data = Object.values(yearCounts);
-        yearChart.update();
+    // Update Year Chart
+    const academicYearCounts = filteredApplicants.reduce((acc, applicant) => {
+        acc[applicant.academicYear] = (acc[applicant.academicYear] || 0) + 1;
+        return acc;
+    }, {});
+    academicYearChart.data.labels = Object.keys(academicYearCounts);
+    academicYearChart.data.datasets[0].data = Object.values(academicYearCounts);
+    academicYearChart.update();
+    }
+document.getElementById('applicantsTableBody').addEventListener('click', function(event) {
+    if (event.target.classList.contains('view-profile-btn')) {
+        const id = event.target.dataset.id;
+        viewProfile(id);
+    }
+});
+    function attachEventListeners() {
+        document.getElementById('committeeFilter').addEventListener('change', handleFilterChange);
+        document.getElementById('facultyFilter').addEventListener('change', handleFilterChange);
+        document.getElementById('academicYearFilter').addEventListener('change', handleFilterChange);
+        document.getElementById('searchInput').addEventListener('input', handleFilterChange);
+        document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
+        document.getElementById('nextPage').addEventListener('click', () => changePage(1));
+        document.getElementById('exportBtn').addEventListener('click', exportReport);
+        document.getElementById('refreshBtn').addEventListener('click', fetchData);
+        document.getElementById('closeModal').addEventListener('click', closeModal);
     }
 
-    window.viewProfile = function(id) {
-        const applicant = applicants.find(a => a.id === id);
-        if (!applicant) return;
+    function handleFilterChange(event) {
+        filters[event.target.id.replace('Filter', '').toLowerCase()] = event.target.value;
+        currentPage = 1;
+        updateDashboard();
+    }
 
-        const modalContent = `
-            <div class="bg-white rounded-lg p-6 max-w-4xl mx-auto">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">${applicant.firstName} ${applicant.lastName}</h2>
-                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
-                        ${applicant.preferredCommittee}
-                    </span>
+    function changePage(direction) {
+        currentPage += direction;
+        renderTable();
+    }
+
+// Define viewProfile in the global scope
+window.viewProfile = function(id) {
+    const applicant = applicants.find(a => a.id === id);
+    if (!applicant) return;
+
+    const modalContent = `
+        <div class="bg-white rounded-lg p-6 max-w-4xl mx-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">${applicant.firstName} ${applicant.lastName}</h2>
+                <span class="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+                    ${applicant.preferredCommittee}
+                </span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-sm text-gray-600">Email</p>
+                    <p class="font-medium">${applicant.email}</p>
                 </div>
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <p class="text-sm text-gray-600">Email</p>
-                        <p class="font-medium">${applicant.email}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-600">Phone</p>
-                        <p class="font-medium">${applicant.phone}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-600">Gender</p>
-                        <p class="font-medium">${applicant.gender}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-600">Date of Birth</p>
-                        <p class="font-medium">${applicant.dob}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-600">Faculty</p>
-                        <p class="font-medium">${applicant.faculty}${applicant.otherFaculty ? ` - ${applicant.otherFaculty}` : ''}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-600">Academic Year</p>
-                        <p class="font-medium">${applicant.academicYear}</p>
-                    </div>
+                <div>
+                    <p class="text-sm text-gray-600">Phone</p>
+                    <p class="font-medium">${applicant.phone}</p>
                 </div>
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2">Skills & Experience</h3>
-                    <p>${applicant.skills}</p>
-                    <p class="mt-2">${applicant.experience}</p>
+                <div>
+                    <p class="text-sm text-gray-600">Gender</p>
+                    <p class="font-medium">${applicant.gender}</p>
                 </div>
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <h3 class="text-lg font-semibold mb-2">Social Media & Portfolio</h3>
-                        <p><strong>Facebook:</strong> <a href="${applicant.facebook}" target="_blank" class="text-blue-600 hover:underline">${applicant.facebook}</a></p>
-                        <p><strong>LinkedIn:</strong> <a href="${applicant.linkedin}" target="_blank" class="text-blue-600 hover:underline">${applicant.linkedin}</a></p>
-                        <p><strong>Portfolio:</strong> <a href="${applicant.portfolio}" target="_blank" class="text-blue-600 hover:underline">${applicant.portfolio}</a></p>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold mb-2">Application Details</h3>
-                        <p><strong>Submission Date:</strong> ${new Date(applicant.Timestamp).toLocaleString()}</p>
-                    </div>
+                <div>
+                    <p class="text-sm text-gray-600">Date of Birth</p>
+                    <p class="font-medium">${applicant.dob}</p>
                 </div>
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-2">Committee-Specific Questions</h3>
-                    ${generateCommitteeQuestions(applicant)}
+                <div>
+                    <p class="text-sm text-gray-600">Faculty</p>
+                    <p class="font-medium">${applicant.faculty}${applicant.otherFaculty ? ` - ${applicant.otherFaculty}` : ''}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Academic Year</p>
+                    <p class="font-medium">${applicant.academicYear}</p>
                 </div>
             </div>
-        `;
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">Skills & Experience</h3>
+                <p>${applicant.skills}</p>
+                <p class="mt-2">${applicant.experience}</p>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Social Media & Portfolio</h3>
+                    <p><strong>Facebook:</strong> <a href="${applicant.facebook}" target="_blank" class="text-blue-600 hover:underline">${applicant.facebook}</a></p>
+                    <p><strong>LinkedIn:</strong> <a href="${applicant.linkedin}" target="_blank" class="text-blue-600 hover:underline">${applicant.linkedin}</a></p>
+                    <p><strong>Portfolio:</strong> <a href="${applicant.portfolio}" target="_blank" class="text-blue-600 hover:underline">${applicant.portfolio}</a></p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Application Details</h3>
+                    <p><strong>Submission Date:</strong> ${new Date(applicant.Timestamp).toLocaleString()}</p>
+                </div>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">Committee-Specific Questions</h3>
+                ${generateCommitteeQuestions(applicant)}
+            </div>
+        </div>
+    `;
 
-        document.getElementById('modalContent').innerHTML = modalContent;
-        document.getElementById('applicantModal').classList.remove('hidden');
-    };
+    document.getElementById('modalContent').innerHTML = modalContent;
+    document.getElementById('applicantModal').classList.remove('hidden');
+};
+function generateCommitteeQuestions(applicant) {
+    const committee = applicant.preferredCommittee.toLowerCase().replace(/\s+/g, '');
+    const questions = [
+        `${committee}Q1`,
+        `${committee}Q2`,
+        `${committee}Q3`
+    ];
 
-    function generateCommitteeQuestions(applicant) {
-        const committee = applicant.preferredCommittee.toLowerCase().replace(/\s+/g, '');
-        const questions = [
-            `${committee}Q1`,
-            `${committee}Q2`,
-            `${committee}Q3`
-        ];
+    return questions.map((q, index) => {
+        if (applicant[q]) {
+            return `
+                <div class="mb-4">
+                    <p class="font-semibold">Question ${index + 1}:</p>
+                    <p>${applicant[q]}</p>
+                </div>
+            `;
+        }
+        return '';
+    }).join('');
+}
 
-        return questions.map((q, index) => {
-            if (applicant[q]) {
-                return `
-                    <div class="mb-4">
-                        <p class="font-semibold">Question ${index + 1}:</p>
-                        <p>${applicant[q]}</p>
-                    </div>
-                `;
-            }
-            return '';
-        }).join('');
-    }
 
     function closeModal() {
         applicantModal.classList.add('hidden');
     }
 
     function exportReport() {
-        const csvContent = [
-            ['Name', 'Email', 'Committee', 'Faculty', 'Year', 'Gender', 'Application Date'],
-            ...filteredApplicants.map(a => [
-                `${a.firstName} ${a.lastName}`,
-                a.email,
-                a.preferredCommittee,
-                a.faculty,
-                a.academicYear,
-                a.gender,
-                a.Timestamp
-            ])
-        ].map(row => row.join(',')).join('\n');
+    const csvContent = [
+        ['Name', 'Email', 'Committee', 'Faculty', 'Year', 'Gender', 'Application Date'],
+        ...filteredApplicants.map(a => [
+            `${a.firstName} ${a.lastName}`,
+            a.email,
+            a.preferredCommittee,
+            a.faculty,
+            a.academicYear,
+            a.gender,
+            a.Timestamp
+        ])
+    ].map(row => row.join(',')).join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
@@ -800,30 +822,6 @@ document.addEventListener("DOMContentLoaded", function () {
             link.click();
             document.body.removeChild(link);
         }
-    }
-
-    function handleFilterChange(event) {
-        const filterId = event.target.id.replace('Filter', '');
-        filters[filterId] = event.target.value;
-        currentPage = 1;
-        updateDashboard();
-    }
-
-    function changePage(direction) {
-        currentPage += direction;
-        renderTable();
-    }
-
-    function attachEventListeners() {
-        document.getElementById('preferredCommitteeFilter').addEventListener('change', handleFilterChange);
-        document.getElementById('facultyFilter').addEventListener('change', handleFilterChange);
-        document.getElementById('academicYearFilter').addEventListener('change', handleFilterChange);
-        document.getElementById('searchInput').addEventListener('input', handleFilterChange);
-        document.getElementById('prevPage').addEventListener('click', () => changePage(-1));
-        document.getElementById('nextPage').addEventListener('click', () => changePage(1));
-        document.getElementById('exportBtn').addEventListener('click', exportReport);
-        document.getElementById('refreshBtn').addEventListener('click', fetchData);
-        document.getElementById('closeModal').addEventListener('click', closeModal);
     }
 
     // Initial data fetch
