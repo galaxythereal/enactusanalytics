@@ -823,14 +823,20 @@ window.viewProfile = function(id) {
 
 function generateCommitteeQuestions(applicant) {
     const committeeMap = {
-        'Projects': 'projects',
-        'Logistics': 'logistics',
-        'Presentation': 'presentation',
-        'GraphicDesign': 'graphicDesign',
-        'VideoPhoto': 'videoPhoto',
-        'HR': 'hr',
-        'PR&FR': 'prFr',
-        'DigitalMarketing': 'digitalMarketing'
+
+    'Projects': 'projects',
+    'Logistics': 'logistics',
+    'Presentation': 'presentation',
+    'GraphicDesign': 'graphicDesign',
+    'VideoPhoto': 'videoPhoto',
+    'HR': 'hr',
+        'HumanResources': 'hr',
+    'PR&FR': 'prFr',
+    'PublicRelations&Fundraising': 'prFr', 
+        'VideoEditing&Photgraphy': 'videoPhoto',// Add alternate names
+    'PublicRelationsFundraising': 'prFr'    // No special characters version
+};
+
     };
 
     // Normalize the input: trim spaces and remove extra whitespace
