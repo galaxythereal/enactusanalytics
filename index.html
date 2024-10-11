@@ -234,7 +234,6 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Committee</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Faculty</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -471,26 +470,21 @@ async function fetchData() {
     document.getElementById('popularCommitteePercentage').textContent = popularCommittee ? `${((popularCommittee[1] / totalApplicants) * 100).toFixed(1)}%` : '0%';
 }
 
-    function renderTable() {
-        const tbody = document.getElementById('applicantsTableBody');
-        tbody.innerHTML = '';
+function renderTable() {
+    const tbody = document.getElementById('applicantsTableBody');
+    tbody.innerHTML = '';
 
-        const start = (currentPage - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const pageApplicants = filteredApplicants.slice(start, end);
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageApplicants = filteredApplicants.slice(start, end);
 
-        pageApplicants.forEach(applicant => {
+    pageApplicants.forEach(applicant => {
         const row = `
             <tr>
-                <td class="px-6 py-4 whitespace-nowrap">${applicant.name}</td>
-                <td class="px-6 py-4 whitespace-nowrap">${applicant.committee}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${applicant.firstName} ${applicant.lastName}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${applicant.preferredCommittee}</td>
                 <td class="px-6 py-4 whitespace-nowrap">${applicant.faculty}</td>
-                <td class="px-6 py-4 whitespace-nowrap">${applicant.year}</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${getStatusColor(applicant.status)}-100 text-${getStatusColor(applicant.status)}-800">
-                        ${applicant.status}
-                    </span>
-                </td>
+                <td class="px-6 py-4 whitespace-nowrap">${applicant.academicYear}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button onclick="viewProfile('${applicant.id}')" class="text-indigo-600 hover:text-indigo-900">View Profile</button>
                 </td>
@@ -499,17 +493,10 @@ async function fetchData() {
         tbody.insertAdjacentHTML('beforeend', row);
     });
 
-        updatePagination();
-    }
+    updatePagination();
+}
 
-    function getStatusColor(status) {
-        switch (status.toLowerCase()) {
-            case 'accepted': return 'green';
-            case 'pending': return 'yellow';
-            case 'rejected': return 'red';
-            default: return 'gray';
-        }
-    }
+    
 
     function updatePagination() {
         const totalPages = Math.ceil(filteredApplicants.length / itemsPerPage);
@@ -819,10 +806,18 @@ function generateCommitteeQuestions(applicant) {
     }
 
     function exportReport() {
-        const csvContent = [
-            ['Name', 'Email', 'Committee', 'Faculty', 'Year', 'Status', 'Gender', 'Application Date'],
-            ...filteredApplicants.map(a => [a.name, a.email, a.committee, a.faculty, a.year, a.status, a.gender, a.applicationDate])
-        ].map(row => row.join(',')).join('\n');
+    const csvContent = [
+        ['Name', 'Email', 'Committee', 'Faculty', 'Year', 'Gender', 'Application Date'],
+        ...filteredApplicants.map(a => [
+            `${a.firstName} ${a.lastName}`,
+            a.email,
+            a.preferredCommittee,
+            a.faculty,
+            a.academicYear,
+            a.gender,
+            a.Timestamp
+        ])
+    ].map(row => row.join(',')).join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
