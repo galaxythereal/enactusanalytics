@@ -213,12 +213,6 @@
             <canvas id="facultyChart"></canvas>
         </div>
     </div>
-    <div class="card p-6">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Application Trend</h3>
-        <div class="chart-container">
-            <canvas id="trendChart"></canvas>
-        </div>
-    </div>
 </section>
         <section class="card overflow-hidden">
             <div class="p-6 border-b border-gray-200 flex justify-between items-center">
@@ -623,24 +617,7 @@ function initializeCharts() {
         }
     });
 
-    // Application Trend Chart
-    const trendCtx = document.getElementById('trendChart').getContext('2d');
-    trendChart = new Chart(trendCtx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Applications',
-                data: [],
-                borderColor: 'rgb(255, 99, 132)',
-                tension: 0.1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
+
     // Year Chart
     const yearCtx = document.getElementById('yearChart').getContext('2d');
     if (yearChart instanceof Chart) {
@@ -694,16 +671,7 @@ function initializeCharts() {
     facultyChart.data.datasets[0].data = Object.values(facultyCounts);
     facultyChart.update();
 
-    // Update Application Trend Chart
-    const applicationDates = filteredApplicants.map(a => new Date(a.applicationDate).toISOString().split('T')[0]);
-    const dateCountMap = applicationDates.reduce((acc, date) => {
-        acc[date] = (acc[date] || 0) + 1;
-        return acc;
-    }, {});
-    const sortedDates = Object.keys(dateCountMap).sort();
-    trendChart.data.labels = sortedDates;
-    trendChart.data.datasets[0].data = sortedDates.map(date => dateCountMap[date]);
-    trendChart.update();
+   
         // Update Committee Chart
         const committeeCounts = filteredApplicants.reduce((acc, applicant) => {
             acc[applicant.committee] = (acc[applicant.committee] || 0) + 1;
