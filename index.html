@@ -820,23 +820,19 @@ window.viewProfile = function(id) {
     document.getElementById('modalContent').innerHTML = modalContent;
     document.getElementById('applicantModal').classList.remove('hidden');
 };
-
 function generateCommitteeQuestions(applicant) {
     const committeeMap = {
-
-    'Projects': 'projects',
-    'Logistics': 'logistics',
-    'Presentation': 'presentation',
-    'GraphicDesign': 'graphicDesign',
-    'VideoPhoto': 'videoPhoto',
-    'HR': 'hr',
+        'Projects': 'projects',
+        'Logistics': 'logistics',
+        'Presentation': 'presentation',
+        'GraphicDesign': 'graphicDesign',
+        'VideoPhoto': 'videoPhoto',
+        'HR': 'hr',
         'HumanResources': 'hr',
-    'PR&FR': 'prFr',
-    'PublicRelations&Fundraising': 'prFr', 
-        'VideoEditing&Photgraphy': 'videoPhoto',// Add alternate names
-    'PublicRelationsFundraising': 'prFr'    // No special characters version
-};
-
+        'PR&FR': 'prFr',
+        'PublicRelations&Fundraising': 'prFr', 
+        'VideoEditing&Photgraphy': 'videoPhoto', // Add alternate names
+        'PublicRelationsFundraising': 'prFr' // No special characters version
     };
 
     // Normalize the input: trim spaces and remove extra whitespace
@@ -883,6 +879,7 @@ function generateCommitteeQuestions(applicant) {
     // Return the output or the fallback message if no questions were found
     return output || '<p>No committee-specific questions available.</p>';
 }
+
 
 
     function closeModal() {
