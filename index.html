@@ -19,6 +19,23 @@
         .gradient-bg {
             background: linear-gradient(135deg, #4f46e5, #0ea5e9);
         }
+#applicantModal {
+    overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#applicantModal .modal-content {
+    max-width: 800px;
+    margin: 2rem auto;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    #applicantModal .modal-content {
+        margin: 1rem;
+    }
+}
 
         .card {
             background-color: #ffffff;
@@ -397,25 +414,27 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updateFilters() {
-        const committees = [...new Set(applicants.map(a => a.preferredCommittee))];
-        const faculties = [...new Set(applicants.map(a => a.faculty))];
-        const academicYears = [...new Set(applicants.map(a => a.academicYear))];
+    const committees = [...new Set(applicants.map(a => a.preferredCommittee))].filter(Boolean);
+    const faculties = [...new Set(applicants.map(a => a.faculty))].filter(Boolean);
+    const academicYears = [...new Set(applicants.map(a => a.academicYear))].filter(Boolean);
 
-        populateSelect('committeeFilter', committees);
-        populateSelect('facultyFilter', faculties);
-        populateSelect('academicYearFilter', academicYears);
-    }
+    populateSelect('committeeFilter', committees);
+    populateSelect('facultyFilter', faculties);
+    populateSelect('academicYearFilter', academicYears);
+}
 
     function populateSelect(id, options) {
-        const select = document.getElementById(id);
-        select.innerHTML = '<option value="">All</option>';
-        options.forEach(option => {
+    const select = document.getElementById(id);
+    select.innerHTML = '<option value="">All</option>';
+    options.sort().forEach(option => {
+        if (option) {  // Only add non-empty options
             const optionEl = document.createElement('option');
             optionEl.value = option;
             optionEl.textContent = option;
             select.appendChild(optionEl);
-        });
-    }
+        }
+    });
+}
 
     function updateDashboard() {
         applyFilters();
@@ -425,13 +444,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function applyFilters() {
-        filteredApplicants = applicants.filter(applicant => {
-            return (filters.preferredCommittee ? applicant.preferredCommittee === filters.preferredCommittee : true) &&
-                   (filters.faculty ? applicant.faculty === filters.faculty : true) &&
-                   (filters.academicYear ? applicant.academicYear === filters.academicYear : true) &&
-                   (filters.search ? (applicant.firstName + ' ' + applicant.lastName).toLowerCase().includes(filters.search.toLowerCase()) : true);
-        });
-    }
+    filteredApplicants = applicants.filter(applicant => {
+        const committeeMatch = !filters.preferredCommittee || 
+            applicant.preferredCommittee.toLowerCase() === filters.preferredCommittee.toLowerCase();
+        
+        const facultyMatch = !filters.faculty || 
+            applicant.faculty.toLowerCase() === filters.faculty.toLowerCase();
+        
+        const yearMatch = !filters.academicYear || 
+            applicant.academicYear.toLowerCase() === filters.academicYear.toLowerCase();
+        
+        const searchMatch = !filters.search || 
+            (applicant.firstName + ' ' + applicant.lastName)
+                .toLowerCase()
+                .includes(filters.search.toLowerCase());
+        
+        return committeeMatch && facultyMatch && yearMatch && searchMatch;
+    });
+}
+
 
   function updateStats() {
         const totalApplicants = filteredApplicants.length;
@@ -695,16 +726,34 @@ document.getElementById('applicantsTableBody').addEventListener('click', functio
     }
 
     function handleFilterChange(event) {
-        filters[event.target.id.replace('Filter', '').toLowerCase()] = event.target.value;
-        currentPage = 1;
-        updateDashboard();
+    const filterId = event.target.id;
+    let filterValue = event.target.value;
+    
+    switch(filterId) {
+        case 'committeeFilter':
+            filters.preferredCommittee = filterValue;
+            break;
+        case 'facultyFilter':
+            filters.faculty = filterValue;
+            break;
+        case 'academicYearFilter':
+            filters.academicYear = filterValue;
+            break;
+        case 'searchInput':
+            filters.search = filterValue;
+            break;
     }
+    
+    currentPage = 1;
+    updateDashboard();
+}
 
     function changePage(direction) {
         currentPage += direction;
         renderTable();
     }
 
+// Define viewProfile in the global scope
 // Define viewProfile in the global scope
 window.viewProfile = function(id) {
     const applicant = applicants.find(a => a.id === id);
@@ -718,52 +767,92 @@ window.viewProfile = function(id) {
                     ${applicant.preferredCommittee}
                 </span>
             </div>
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                    <p class="text-sm text-gray-600">Email</p>
-                    <p class="font-medium">${applicant.email}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Phone</p>
-                    <p class="font-medium">${applicant.phone}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Gender</p>
-                    <p class="font-medium">${applicant.gender}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Date of Birth</p>
-                    <p class="font-medium">${applicant.dob}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Faculty</p>
-                    <p class="font-medium">${applicant.faculty}${applicant.otherFaculty ? ` - ${applicant.otherFaculty}` : ''}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Academic Year</p>
-                    <p class="font-medium">${applicant.academicYear}</p>
-                </div>
-            </div>
+            
+            <!-- Personal Information -->
             <div class="mb-6">
-                <h3 class="text-lg font-semibold mb-2">Skills & Experience</h3>
-                <p>${applicant.skills}</p>
-                <p class="mt-2">${applicant.experience}</p>
-            </div>
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                    <h3 class="text-lg font-semibold mb-2">Social Media & Portfolio</h3>
-                    <p><strong>Facebook:</strong> <a href="${applicant.facebook}" target="_blank" class="text-blue-600 hover:underline">${applicant.facebook}</a></p>
-                    <p><strong>LinkedIn:</strong> <a href="${applicant.linkedin}" target="_blank" class="text-blue-600 hover:underline">${applicant.linkedin}</a></p>
-                    <p><strong>Portfolio:</strong> <a href="${applicant.portfolio}" target="_blank" class="text-blue-600 hover:underline">${applicant.portfolio}</a></p>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700 border-b pb-2">Personal Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Email</p>
+                        <p class="font-medium">${applicant.email}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Phone</p>
+                        <p class="font-medium">${applicant.phone}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Gender</p>
+                        <p class="font-medium">${applicant.gender}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Date of Birth</p>
+                        <p class="font-medium">${applicant.dob}</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-lg font-semibold mb-2">Application Details</h3>
-                    <p><strong>Submission Date:</strong> ${new Date(applicant.Timestamp).toLocaleString()}</p>
-                </div>
             </div>
+            
+            <!-- Academic Information -->
             <div class="mb-6">
-                <h3 class="text-lg font-semibold mb-2">Committee-Specific Questions</h3>
-                ${generateCommitteeQuestions(applicant)}
+                <h3 class="text-lg font-semibold mb-3 text-gray-700 border-b pb-2">Academic Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Faculty</p>
+                        <p class="font-medium">${applicant.faculty}${applicant.otherFaculty ? ` - ${applicant.otherFaculty}` : ''}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Academic Year</p>
+                        <p class="font-medium">${applicant.academicYear}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills & Experience -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3 text-gray-700 border-b pb-2">Skills & Experience</h3>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="mb-4">
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Skills</p>
+                        <p>${applicant.skills || 'No skills specified'}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Experience</p>
+                        <p>${applicant.experience || 'No experience specified'}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Media & Portfolio -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3 text-gray-700 border-b pb-2">Social Media & Portfolio</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    ${applicant.facebook ? `
+                        <a href="${applicant.facebook}" target="_blank" class="flex items-center text-blue-600 hover:underline">
+                            <i class="fab fa-facebook mr-2"></i> Facebook
+                        </a>
+                    ` : ''}
+                    ${applicant.linkedin ? `
+                        <a href="${applicant.linkedin}" target="_blank" class="flex items-center text-blue-600 hover:underline">
+                            <i class="fab fa-linkedin mr-2"></i> LinkedIn
+                        </a>
+                    ` : ''}
+                    ${applicant.portfolio ? `
+                        <a href="${applicant.portfolio}" target="_blank" class="flex items-center text-blue-600 hover:underline">
+                            <i class="fas fa-globe mr-2"></i> Portfolio
+                        </a>
+                    ` : ''}
+                </div>
+            </div>
+
+            <!-- Committee Questions -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3 text-gray-700 border-b pb-2">Committee-Specific Questions</h3>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    ${generateCommitteeQuestions(applicant)}
+                </div>
+            </div>
+            
+            <div class="text-sm text-gray-500 mt-4">
+                Application submitted on ${new Date(applicant.Timestamp).toLocaleString()}
             </div>
         </div>
     `;
@@ -771,27 +860,36 @@ window.viewProfile = function(id) {
     document.getElementById('modalContent').innerHTML = modalContent;
     document.getElementById('applicantModal').classList.remove('hidden');
 };
+
 function generateCommitteeQuestions(applicant) {
-    const committee = applicant.preferredCommittee.toLowerCase().replace(/\s+/g, '');
-    const questions = [
-        `${committee}Q1`,
-        `${committee}Q2`,
-        `${committee}Q3`
-    ];
+    const committeeMapping = {
+        'Projects': ['projectsQ1', 'projectsQ2', 'projectsQ3'],
+        'Logistics': ['logisticsQ1', 'logisticsQ2', 'logisticsQ3'],
+        'Presentation': ['presentationQ1', 'presentationQ2', 'presentationQ3'],
+        'GraphicDesign': ['graphicDesignQ1', 'graphicDesignQ2', 'graphicDesignQ3'],
+        'VideoPhoto': ['videoPhotoQ1', 'videoPhotoQ2', 'videoPhotoQ3'],
+        'HR': ['hrQ1', 'hrQ2', 'hrQ3'],
+        'PRFR': ['prFrQ1', 'prFrQ2', 'prFrQ3'],
+        'DigitalMarketing': ['digitalMarketingQ1', 'digitalMarketingQ2', 'digitalMarketingQ3']
+    };
+
+    const committee = applicant.preferredCommittee.replace(/\s+/g, '');
+    const questions = committeeMapping[committee] || [];
+    
+    if (questions.length === 0) return '<p class="text-gray-500">No committee-specific questions available.</p>';
 
     return questions.map((q, index) => {
         if (applicant[q]) {
             return `
-                <div class="mb-4">
-                    <p class="font-semibold">Question ${index + 1}:</p>
-                    <p>${applicant[q]}</p>
+                <div class="mb-4 last:mb-0">
+                    <p class="font-semibold text-gray-700 mb-1">Question ${index + 1}</p>
+                    <p class="bg-white p-3 rounded">${applicant[q]}</p>
                 </div>
             `;
         }
         return '';
     }).join('');
 }
-
 
     function closeModal() {
         applicantModal.classList.add('hidden');
