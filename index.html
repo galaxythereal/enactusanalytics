@@ -397,7 +397,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function updateFilters() {
-        const committees = [...new Set(applicants.map(a => a.committee))];
+        const committees = [...new Set(applicants.map(a => a.preferredCommittee))];
         const faculties = [...new Set(applicants.map(a => a.faculty))];
         const academicYears = [...new Set(applicants.map(a => a.academicYear))];
 
@@ -426,10 +426,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function applyFilters() {
         filteredApplicants = applicants.filter(applicant => {
-            return (filters.committee ? applicant.committee === filters.committee : true) &&
+            return (filters.preferredCommittee ? applicant.preferredCommittee === filters.preferredCommittee : true) &&
                    (filters.faculty ? applicant.faculty === filters.faculty : true) &&
                    (filters.academicYear ? applicant.academicYear === filters.academicYear : true) &&
-                   (filters.search ? applicant.name.toLowerCase().includes(filters.search.toLowerCase()) : true);
+                   (filters.search ? (applicant.firstName + ' ' + applicant.lastName).toLowerCase().includes(filters.search.toLowerCase()) : true);
         });
     }
 
