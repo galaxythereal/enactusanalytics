@@ -206,7 +206,20 @@
                 </div>
             </div>
         </section>
-
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="card p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Faculty Distribution</h3>
+        <div class="chart-container">
+            <canvas id="facultyChart"></canvas>
+        </div>
+    </div>
+    <div class="card p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Application Trend</h3>
+        <div class="chart-container">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+</section>
         <section class="card overflow-hidden">
             <div class="p-6 border-b border-gray-200 flex justify-between items-center">
                 <h3 class="text-xl font-semibold text-gray-800">Applicants List</h3>
@@ -335,16 +348,48 @@ async function fetchData() {
         }
         
         applicants = data.data.map(row => ({
-            id: row['Timestamp'] || 'N/A',
-            name: `${row['firstName'] || ''} ${row['lastName'] || ''}`.trim() || 'N/A',
-            email: row['email'] || 'N/A',
-            committee: row['preferredCommittee'] || 'N/A',
-            faculty: row['faculty'] || 'N/A',
-            year: row['academicYear'] || 'N/A',
-            status: 'Pending',
-            gender: row['gender'] || 'N/A',
-            applicationDate: row['Timestamp'] ? new Date(row['Timestamp']).toISOString().split('T')[0] : 'N/A'
-        }));
+    id: row['Timestamp'],
+    firstName: row['firstName'] || '',
+    lastName: row['lastName'] || '',
+    preferredCommittee: row['preferredCommittee'] || '',
+    gender: row['gender'] || '',
+    faculty: row['faculty'] || '',
+    otherFaculty: row['otherFaculty'] || '',
+    phone: row['phone'] || '',
+    academicYear: row['academicYear'] || '',
+    email: row['email'] || '',
+    skills: row['skills'] || '',
+    experience: row['experience'] || '',
+    dob: row['dob'] || '',
+    facebook: row['facebook'] || '',
+    linkedin: row['linkedin'] || '',
+    portfolio: row['portfolio'] || '',
+    Timestamp: row['Timestamp'] || '',
+    projectsQ1: row['projectsQ1'] || '',
+    projectsQ2: row['projectsQ2'] || '',
+    projectsQ3: row['projectsQ3'] || '',
+    logisticsQ1: row['logisticsQ1'] || '',
+    logisticsQ2: row['logisticsQ2'] || '',
+    logisticsQ3: row['logisticsQ3'] || '',
+    presentationQ1: row['presentationQ1'] || '',
+    presentationQ2: row['presentationQ2'] || '',
+    presentationQ3: row['presentationQ3'] || '',
+    graphicDesignQ1: row['graphicDesignQ1'] || '',
+    graphicDesignQ2: row['graphicDesignQ2'] || '',
+    graphicDesignQ3: row['graphicDesignQ3'] || '',
+    videoPhotoQ1: row['videoPhotoQ1'] || '',
+    videoPhotoQ2: row['videoPhotoQ2'] || '',
+    videoPhotoQ3: row['videoPhotoQ3'] || '',
+    hrQ1: row['hrQ1'] || '',
+    hrQ2: row['hrQ2'] || '',
+    hrQ3: row['hrQ3'] || '',
+    prFrQ1: row['prFrQ1'] || '',
+    prFrQ2: row['prFrQ2'] || '',
+    prFrQ3: row['prFrQ3'] || '',
+    digitalMarketingQ1: row['digitalMarketingQ1'] || '',
+    digitalMarketingQ2: row['digitalMarketingQ2'] || '',
+    digitalMarketingQ3: row['digitalMarketingQ3'] || ''
+}));
         
         console.log('Processed applicants:', applicants);
         
@@ -404,7 +449,7 @@ async function fetchData() {
     }
 
   function updateStats() {
-    const totalApplicants = filteredApplicants.length;
+        const totalApplicants = filteredApplicants.length;
     totalApplicantsEl.textContent = totalApplicants;
 
     const genderCounts = filteredApplicants.reduce((acc, applicant) => {
@@ -441,24 +486,24 @@ async function fetchData() {
         const pageApplicants = filteredApplicants.slice(start, end);
 
         pageApplicants.forEach(applicant => {
-            const row = `
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap">${applicant.name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${applicant.committee}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${applicant.faculty}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${applicant.year}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${getStatusColor(applicant.status)}-100 text-${getStatusColor(applicant.status)}-800">
-                            ${applicant.status}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onclick="viewProfile(${applicant.id})" class="text-indigo-600 hover:text-indigo-900">View Profile</button>
-                    </td>
-                </tr>
-            `;
-            tbody.insertAdjacentHTML('beforeend', row);
-        });
+        const row = `
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap">${applicant.name}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${applicant.committee}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${applicant.faculty}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${applicant.year}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-${getStatusColor(applicant.status)}-100 text-${getStatusColor(applicant.status)}-800">
+                        ${applicant.status}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button onclick="viewProfile('${applicant.id}')" class="text-indigo-600 hover:text-indigo-900">View Profile</button>
+                </td>
+            </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', row);
+    });
 
         updatePagination();
     }
@@ -555,7 +600,47 @@ function initializeCharts() {
             maintainAspectRatio: false
         }
     });
+// Faculty Chart
+    const facultyCtx = document.getElementById('facultyChart').getContext('2d');
+    facultyChart = new Chart(facultyCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Applicants',
+                data: [],
+                backgroundColor: 'rgba(153, 102, 255, 0.8)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 
+    // Application Trend Chart
+    const trendCtx = document.getElementById('trendChart').getContext('2d');
+    trendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Applications',
+                data: [],
+                borderColor: 'rgb(255, 99, 132)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
     // Year Chart
     const yearCtx = document.getElementById('yearChart').getContext('2d');
     if (yearChart instanceof Chart) {
@@ -600,7 +685,25 @@ function initializeCharts() {
         timelineChart.data.labels = Object.keys(dateCountMap);
         timelineChart.data.datasets[0].data = Object.values(dateCountMap);
         timelineChart.update();
+ // Update Faculty Chart
+    const facultyCounts = filteredApplicants.reduce((acc, applicant) => {
+        acc[applicant.faculty] = (acc[applicant.faculty] || 0) + 1;
+        return acc;
+    }, {});
+    facultyChart.data.labels = Object.keys(facultyCounts);
+    facultyChart.data.datasets[0].data = Object.values(facultyCounts);
+    facultyChart.update();
 
+    // Update Application Trend Chart
+    const applicationDates = filteredApplicants.map(a => new Date(a.applicationDate).toISOString().split('T')[0]);
+    const dateCountMap = applicationDates.reduce((acc, date) => {
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+    }, {});
+    const sortedDates = Object.keys(dateCountMap).sort();
+    trendChart.data.labels = sortedDates;
+    trendChart.data.datasets[0].data = sortedDates.map(date => dateCountMap[date]);
+    trendChart.update();
         // Update Committee Chart
         const committeeCounts = filteredApplicants.reduce((acc, applicant) => {
             acc[applicant.committee] = (acc[applicant.committee] || 0) + 1;
@@ -657,21 +760,91 @@ document.getElementById('applicantsTableBody').addEventListener('click', functio
     }
 
     function viewProfile(id) {
-        const applicant = applicants.find(a => a.id === id);
-        if (!applicant) return;
+    const applicant = applicants.find(a => a.id === id);
+    if (!applicant) return;
 
-        modalContentEl.innerHTML = `
-            <p><strong>Name:</strong> ${applicant.name}</p>
-            <p><strong>Email:</strong> ${applicant.email}</p>
-            <p><strong>Committee:</strong> ${applicant.committee}</p>
-            <p><strong>Faculty:</strong> ${applicant.faculty}</p>
-            <p><strong>Year:</strong> ${applicant.year}</p>
-            <p><strong>Status:</strong> ${applicant.status}</p>
-            <p><strong>Gender:</strong> ${applicant.gender}</p>
-            <p><strong>Application Date:</strong> ${applicant.applicationDate}</p>
-        `;
-        applicantModal.classList.remove('hidden');
-    }
+    const modalContent = `
+        <div class="bg-white rounded-lg p-6 max-w-4xl mx-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">${applicant.firstName} ${applicant.lastName}</h2>
+                <span class="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+                    ${applicant.preferredCommittee}
+                </span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-sm text-gray-600">Email</p>
+                    <p class="font-medium">${applicant.email}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Phone</p>
+                    <p class="font-medium">${applicant.phone}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Gender</p>
+                    <p class="font-medium">${applicant.gender}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Date of Birth</p>
+                    <p class="font-medium">${applicant.dob}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Faculty</p>
+                    <p class="font-medium">${applicant.faculty}${applicant.otherFaculty ? ` - ${applicant.otherFaculty}` : ''}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Academic Year</p>
+                    <p class="font-medium">${applicant.academicYear}</p>
+                </div>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">Skills & Experience</h3>
+                <p>${applicant.skills}</p>
+                <p class="mt-2">${applicant.experience}</p>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Social Media & Portfolio</h3>
+                    <p><strong>Facebook:</strong> <a href="${applicant.facebook}" target="_blank" class="text-blue-600 hover:underline">${applicant.facebook}</a></p>
+                    <p><strong>LinkedIn:</strong> <a href="${applicant.linkedin}" target="_blank" class="text-blue-600 hover:underline">${applicant.linkedin}</a></p>
+                    <p><strong>Portfolio:</strong> <a href="${applicant.portfolio}" target="_blank" class="text-blue-600 hover:underline">${applicant.portfolio}</a></p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Application Details</h3>
+                    <p><strong>Submission Date:</strong> ${new Date(applicant.Timestamp).toLocaleString()}</p>
+                </div>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">Committee-Specific Questions</h3>
+                ${generateCommitteeQuestions(applicant)}
+            </div>
+        </div>
+    `;
+
+    modalContentEl.innerHTML = modalContent;
+    applicantModal.classList.remove('hidden');
+}
+
+function generateCommitteeQuestions(applicant) {
+    const committee = applicant.preferredCommittee.toLowerCase().replace(/\s+/g, '');
+    const questions = [
+        `${committee}Q1`,
+        `${committee}Q2`,
+        `${committee}Q3`
+    ];
+
+    return questions.map((q, index) => {
+        if (applicant[q]) {
+            return `
+                <div class="mb-4">
+                    <p class="font-semibold">Question ${index + 1}:</p>
+                    <p>${applicant[q]}</p>
+                </div>
+            `;
+        }
+        return '';
+    }).join('');
+}
 
     function closeModal() {
         applicantModal.classList.add('hidden');
