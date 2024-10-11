@@ -832,18 +832,35 @@ function generateCommitteeQuestions(applicant) {
         'PR&FR': 'prFr',
         'DigitalMarketing': 'digitalMarketing'
     };
+
+    // Normalize the input: trim spaces and remove extra whitespace
+    const normalizedCommittee = applicant.preferredCommittee.replace(/\s+/g, '').trim();
     
-    const committee = committeeMap[applicant.preferredCommittee.replace(/\s+/g, '')] || 
-                      applicant.preferredCommittee.toLowerCase().replace(/\s+/g, '');
-    
+    // Try to map the committee, fallback to empty string if not found
+    const committee = committeeMap[normalizedCommittee] || '';
+
+    console.log('Preferred Committee (Normalized):', normalizedCommittee);
+    console.log('Mapped Committee:', committee);
+
+    // If no valid committee is found, return an error message
+    if (!committee) {
+        console.log('No valid committee found for:', normalizedCommittee);
+        return '<p>No valid committee-specific questions available.</p>';
+    }
+
+    // Generate the question keys based on the mapped committee
     const questions = [
         `${committee}Q1`,
         `${committee}Q2`,
         `${committee}Q3`
     ];
 
+    console.log('Generated Question Keys:', questions);
+
     let output = '';
+    // Loop through the generated questions and check if the applicant answered them
     questions.forEach((q, index) => {
+        console.log(`Checking question: ${q}, Value: ${applicant[q]}`);
         if (applicant[q]) {
             output += `
                 <div class="mb-4">
@@ -853,9 +870,15 @@ function generateCommitteeQuestions(applicant) {
             `;
         }
     });
-    
+
+    // Logging the final output before returning
+    console.log('Generated Output:', output);
+
+    // Return the output or the fallback message if no questions were found
     return output || '<p>No committee-specific questions available.</p>';
 }
+
+
     function closeModal() {
         applicantModal.classList.add('hidden');
     }
