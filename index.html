@@ -441,8 +441,8 @@ document.addEventListener("DOMContentLoaded", function () {
             acc[applicant.gender] = (acc[applicant.gender] || 0) + 1;
             return acc;
         }, {});
-        const maleCount = genderCounts['Male'] || 0;
-        const femaleCount = genderCounts['Female'] || 0;
+        const maleCount = genderCounts['male'] || 0;
+        const femaleCount = genderCounts['female'] || 0;
         genderRatioEl.textContent = `${maleCount}:${femaleCount}`;
 
         const facultyCounts = filteredApplicants.reduce((acc, applicant) => {
