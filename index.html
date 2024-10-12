@@ -246,13 +246,14 @@
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Committee</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Faculty</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
+                       <tr>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Committee</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Faculty</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+    </tr>
                     </thead>
                     <tbody id="applicantsTableBody" class="bg-white divide-y divide-gray-200">
                         <!-- Table rows will be dynamically inserted here -->
@@ -398,7 +399,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 digitalMarketingQ2: row['digitalMarketingQ2'] || '',
                 digitalMarketingQ3: row['digitalMarketingQ3'] || '',
                 digitalMarketingQ4: row['digitalMarketingQ4'] || '',
-                id: row['Timestamp']
+                id: row['Timestamp'],
+                Timestamp: new Date(row['Timestamp'] || '')
+                
 }));
         
         console.log('Processed applicants:', applicants);
@@ -504,7 +507,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function renderTable() {
     const tbody = document.getElementById('applicantsTableBody');
     tbody.innerHTML = '';
-
+const sortedApplicants = filteredApplicants.sort((a, b) => b.Timestamp - a.Timestamp);
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
     const pageApplicants = filteredApplicants.slice(start, end);
@@ -516,6 +519,7 @@ function renderTable() {
                 <td class="px-6 py-4 whitespace-nowrap">${applicant.preferredCommittee}</td>
                 <td class="px-6 py-4 whitespace-nowrap">${applicant.faculty}</td>
                 <td class="px-6 py-4 whitespace-nowrap">${applicant.academicYear}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${formatDate(applicant.Timestamp)}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button onclick="viewProfile('${applicant.id}')" class="text-indigo-600 hover:text-indigo-900">View Profile</button>
                 </td>
@@ -528,7 +532,15 @@ function renderTable() {
 }
 
     
-
+function formatDate(date) {
+    return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
     function updatePagination() {
         const totalPages = Math.ceil(filteredApplicants.length / itemsPerPage);
         startRangeEl.textContent = ((currentPage - 1) * itemsPerPage) + 1;
