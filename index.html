@@ -369,27 +369,35 @@ document.addEventListener("DOMContentLoaded", function () {
                 projectsQ1: row['projectsQ1'] || '',
                 projectsQ2: row['projectsQ2'] || '',
                 projectsQ3: row['projectsQ3'] || '',
+                projectsQ4: row['projectsQ4'] || '',
                 logisticsQ1: row['logisticsQ1'] || '',
                 logisticsQ2: row['logisticsQ2'] || '',
                 logisticsQ3: row['logisticsQ3'] || '',
+                logisticsQ4: row['logisticsQ4'] || '',
                 presentationQ1: row['presentationQ1'] || '',
                 presentationQ2: row['presentationQ2'] || '',
                 presentationQ3: row['presentationQ3'] || '',
+                presentationQ4: row['presentationQ4'] || '',
                 graphicDesignQ1: row['graphicDesignQ1'] || '',
                 graphicDesignQ2: row['graphicDesignQ2'] || '',
                 graphicDesignQ3: row['graphicDesignQ3'] || '',
+                graphicDesignQ4: row['graphicDesignQ4'] || '',
                 videoPhotoQ1: row['videoPhotoQ1'] || '',
                 videoPhotoQ2: row['videoPhotoQ2'] || '',
                 videoPhotoQ3: row['videoPhotoQ3'] || '',
+                videoPhotoQ4: row['videoPhotoQ4'] || '',
                 hrQ1: row['hrQ1'] || '',
                 hrQ2: row['hrQ2'] || '',
                 hrQ3: row['hrQ3'] || '',
+                hrQ4: row['hrQ4'] || '',
                 prFrQ1: row['prFrQ1'] || '',
                 prFrQ2: row['prFrQ2'] || '',
                 prFrQ3: row['prFrQ3'] || '',
+                prFrQ4: row['prFrQ4'] || '',
                 digitalMarketingQ1: row['digitalMarketingQ1'] || '',
                 digitalMarketingQ2: row['digitalMarketingQ2'] || '',
                 digitalMarketingQ3: row['digitalMarketingQ3'] || '',
+                digitalMarketingQ4: row['digitalMarketingQ4'] || '',
                 id: row['Timestamp']
 }));
         
@@ -854,7 +862,9 @@ function generateCommitteeQuestions(applicant) {
     const questions = [
         `${committee}Q1`,
         `${committee}Q2`,
-        `${committee}Q3`
+        `${committee}Q3`,
+        `${committee}Q4`,
+        
     ];
 
     console.log('Generated Question Keys:', questions);
