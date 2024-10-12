@@ -19,27 +19,10 @@
         .gradient-bg {
             background: linear-gradient(135deg, #4f46e5, #0ea5e9);
         }
-#applicantModal {
-    overflow-y: auto;
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-#applicantModal .modal-content {
-    max-width: 800px;
-    margin: 2rem auto;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-@media (max-width: 768px) {
-    #applicantModal .modal-content {
-        margin: 1rem;
-    }
-}
 
         .card {
             background-color: #ffffff;
-            border-radius: 0.75rem;
+            border-radius: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             transition: all 0.3s ease;
         }
@@ -90,9 +73,78 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* New styles for improved UI */
+        .modal-content {
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 1rem;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        .profile-body {
+            padding: 2rem;
+        }
+
+        .profile-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-section h3 {
+            color: #4a5568;
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Login modal styles */
+        #loginModal {
+            display: flex;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-content {
+            background-color: #fefefe;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 300px;
+        }
     </style>
 </head>
 <body class="min-h-screen">
+    <!-- Login Modal -->
+    <div id="loginModal" class="hidden">
+        <div class="login-content">
+            <h2 class="text-2xl font-bold mb-4">Login</h2>
+            <input type="password" id="passwordInput" placeholder="Enter password" class="w-full p-2 mb-4 border rounded">
+            <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
+        </div>
+    </div>
     <div id="loading-overlay" class="loading-overlay">
         <div class="spinner"></div>
     </div>
@@ -310,6 +362,36 @@
         </div>
     </div>
     <script>
+            // Add this at the beginning of your script
+    let currentUser = null;
+    const users = {
+        'admin': 'admin123',
+        'projects': 'projects123',
+        'logistics': 'logistics123',
+        'presentation': 'presentation123',
+        'graphicdesign': 'graphicdesign123',
+        'videophoto': 'videophoto123',
+        'hr': 'hr123',
+        'prfr': 'prfr123',
+        'digitalmarketing': 'digitalmarketing123'
+    };
+
+    function showLoginModal() {
+        document.getElementById('loginModal').classList.remove('hidden');
+    }
+
+    function login() {
+        const password = document.getElementById('passwordInput').value;
+        const user = Object.keys(users).find(key => users[key] === password);
+        
+        if (user) {
+            currentUser = user;
+            document.getElementById('loginModal').classList.add('hidden');
+            fetchData(); // Fetch data after successful login
+        } else {
+            alert('Invalid password');
+        }
+    }
 document.addEventListener("DOMContentLoaded", function () {
     let applicants = [];
     let filteredApplicants = [];
@@ -339,7 +421,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const loadingOverlay = document.getElementById('loading-overlay');
 
     // Fetch data from Google Apps Script
+    // Modify the fetchData function
     async function fetchData() {
+        if (!currentUser) {
+            showLoginModal();
+            return;
+        }
+
         loadingOverlay.style.display = 'flex';
         try {
             const response = await fetch('https://script.google.com/macros/s/AKfycbz9qFKlJQ9AxBzUNE-ZrXbG_q92r-kjVBDb3D8u3HN7g-Aq7iD64KL6zkIxgimEQA/exec');
@@ -403,7 +491,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 Timestamp: new Date(row['Timestamp'] || '')
                 
 }));
-        
+         // Filter applicants based on user role
+            if (currentUser !== 'admin') {
+                applicants = applicants.filter(a => a.preferredCommittee.toLowerCase() === currentUser);
+            }
+            
+
         console.log('Processed applicants:', applicants);
         
         stats = data.stats;
@@ -775,71 +868,63 @@ document.getElementById('applicantsTableBody').addEventListener('click', functio
 
 // Define viewProfile in the global scope
 // Define viewProfile in the global scope
-window.viewProfile = function(id) {
-    const applicant = applicants.find(a => a.id === id);
-    if (!applicant) return;
+ // Modify the viewProfile function
+    window.viewProfile = function(id) {
+        const applicant = applicants.find(a => a.id === id);
+        if (!applicant) return;
 
-    const modalContent = `
-        <div class="bg-white rounded-lg p-6 max-w-4xl mx-auto">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">${applicant.firstName} ${applicant.lastName}</h2>
-                <span class="px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
-                    ${applicant.preferredCommittee}
-                </span>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <p class="text-sm text-gray-600">Email</p>
-                    <p class="font-medium break-all">${applicant.email}</p>
+        const modalContent = `
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="profile-header">
+                    <h2 class="text-3xl font-bold">${applicant.firstName} ${applicant.lastName}</h2>
+                    <p class="text-lg opacity-75">${applicant.preferredCommittee}</p>
                 </div>
-                <div>
-                    <p class="text-sm text-gray-600">Phone</p>
-                    <p class="font-medium">${applicant.phone}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Gender</p>
-                    <p class="font-medium">${applicant.gender}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Date of Birth</p>
-                    <p class="font-medium">${applicant.dob}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Faculty</p>
-                    <p class="font-medium">${applicant.faculty}${applicant.otherFaculty ? ` - ${applicant.otherFaculty}` : ''}</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-600">Academic Year</p>
-                    <p class="font-medium">${applicant.academicYear}</p>
-                </div>
-            </div>
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold mb-2">Skills & Experience</h3>
-                <p class="whitespace-pre-wrap">${applicant.skills}</p>
-                <p class="mt-2 whitespace-pre-wrap">${applicant.experience}</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <h3 class="text-lg font-semibold mb-2">Social Media & Portfolio</h3>
-                    <p class="mb-1"><strong>Facebook:</strong> <a href="${applicant.facebook}" target="_blank" class="text-blue-600 hover:underline break-all">${applicant.facebook}</a></p>
-                    <p class="mb-1"><strong>LinkedIn:</strong> <a href="${applicant.linkedin}" target="_blank" class="text-blue-600 hover:underline break-all">${applicant.linkedin}</a></p>
-                    <p><strong>Portfolio:</strong> <a href="${applicant.portfolio}" target="_blank" class="text-blue-600 hover:underline break-all">${applicant.portfolio}</a></p>
-                </div>
-                <div>
-                    <h3 class="text-lg font-semibold mb-2">Application Details</h3>
-                    <p><strong>Submission Date:</strong> ${new Date(applicant.Timestamp).toLocaleString()}</p>
+                <div class="profile-body">
+                    <div class="profile-section">
+                        <h3>Contact Information</h3>
+                        <p><i class="fas fa-envelope mr-2"></i>${applicant.email}</p>
+                        <p><i class="fas fa-phone mr-2"></i>${applicant.phone}</p>
+                    </div>
+                    <div class="profile-section">
+                        <h3>Personal Details</h3>
+                        <p><i class="fas fa-user mr-2"></i>${applicant.gender}</p>
+                        <p><i class="fas fa-calendar mr-2"></i>${applicant.dob}</p>
+                    </div>
+                    <div class="profile-section">
+                        <h3>Academic Information</h3>
+                        <p><i class="fas fa-university mr-2"></i>${applicant.faculty}${applicant.otherFaculty ? ` - ${applicant.otherFaculty}` : ''}</p>
+                        <p><i class="fas fa-graduation-cap mr-2"></i>${applicant.academicYear}</p>
+                    </div>
+                    <div class="profile-section">
+                        <h3>Skills & Experience</h3>
+                        <p class="whitespace-pre-wrap">${applicant.skills}</p>
+                        <p class="mt-2 whitespace-pre-wrap">${applicant.experience}</p>
+                    </div>
+                    <div class="profile-section">
+                        <h3>Social Media & Portfolio</h3>
+                        <p><a href="${applicant.facebook}" target="_blank" class="text-blue-600 hover:underline"><i class="fab fa-facebook mr-2"></i>Facebook</a></p>
+                        <p><a href="${applicant.linkedin}" target="_blank" class="text-blue-600 hover:underline"><i class="fab fa-linkedin mr-2"></i>LinkedIn</a></p>
+                        <p><a href="${applicant.portfolio}" target="_blank" class="text-blue-600 hover:underline"><i class="fas fa-briefcase mr-2"></i>Portfolio</a></p>
+                    </div>
+                    <div class="profile-section">
+                        <h3>Application Details</h3>
+                        <p><i class="fas fa-clock mr-2"></i>Submitted on ${new Date(applicant.Timestamp).toLocaleString()}</p>
+                    </div>
+                    <div class="profile-section">
+                        <h3>Committee-Specific Questions</h3>
+                        ${generateCommitteeQuestions(applicant)}
+                    </div>
                 </div>
             </div>
-            <div class="mb-6">
-                <h3 class="text-lg font-semibold mb-2">Committee-Specific Questions</h3>
-                ${generateCommitteeQuestions(applicant)}
-            </div>
-        </div>
-    `;
+        `;
 
-    document.getElementById('modalContent').innerHTML = modalContent;
-    document.getElementById('applicantModal').classList.remove('hidden');
-};
+        document.getElementById('modalContent').innerHTML = modalContent;
+        document.getElementById('applicantModal').classList.remove('hidden');
+    };
+
+    // Call showLoginModal() when the page loads
+    document.addEventListener('DOMContentLoaded', showLoginModal);
+
 function generateCommitteeQuestions(applicant) {
     const committeeMap = {
         'Projects': 'projects',
