@@ -895,58 +895,59 @@ document.getElementById('applicantsTableBody').addEventListener('click', functio
 // Define viewProfile in the global scope
 // Define viewProfile in the global scope
  // Modify the viewProfile function
-    window.viewProfile = function(id) {
-        const applicant = applicants.find(a => a.id === id);
-        if (!applicant) return;
+window.viewProfile = function(id) {
+    const applicant = applicants.find(a => a.id === id);
+    if (!applicant) return;
 
-        const modalContent = `
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div class="profile-header">
-                    <h2 class="text-3xl font-bold">${applicant.firstName} ${applicant.lastName}</h2>
-                    <p class="text-lg opacity-75">${applicant.preferredCommittee}</p>
+    const modalContent = `
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="profile-header">
+                <h2 class="text-3xl font-bold">${applicant.firstName} ${applicant.lastName}</h2>
+                <p class="text-lg opacity-75">${applicant.preferredCommittee}</p>
+            </div>
+            <div class="profile-body">
+                <div class="profile-section">
+                    <h3>Contact Information</h3>
+                    <p><i class="fas fa-envelope mr-2"></i>${applicant.email}</p>
+                    <p><i class="fas fa-phone mr-2"></i>${applicant.phone}</p>
                 </div>
-                <div class="profile-body">
-                    <div class="profile-section">
-                        <h3>Contact Information</h3>
-                        <p><i class="fas fa-envelope mr-2"></i>${applicant.email}</p>
-                        <p><i class="fas fa-phone mr-2"></i>${applicant.phone}</p>
-                    </div>
-                    <div class="profile-section">
-                        <h3>Personal Details</h3>
-                        <p><i class="fas fa-user mr-2"></i>${applicant.gender}</p>
-                        <p><i class="fas fa-calendar mr-2"></i>${applicant.dob}</p>
-                    </div>
-                    <div class="profile-section">
-                        <h3>Academic Information</h3>
-                        <p><i class="fas fa-university mr-2"></i>${applicant.faculty}${applicant.otherFaculty ? ` - ${applicant.otherFaculty}` : ''}</p>
-                        <p><i class="fas fa-graduation-cap mr-2"></i>${applicant.academicYear}</p>
-                    </div>
-                    <div class="profile-section">
-                        <h3>Skills & Experience</h3>
-                        <p class="whitespace-pre-wrap">${applicant.skills}</p>
-                        <p class="mt-2 whitespace-pre-wrap">${applicant.experience}</p>
-                    </div>
-                    <div class="profile-section">
-                        <h3>Social Media & Portfolio</h3>
-                        <p><a href="${applicant.facebook}" target="_blank" class="text-blue-600 hover:underline"><i class="fab fa-facebook mr-2"></i>Facebook</a></p>
-                        <p><a href="${applicant.linkedin}" target="_blank" class="text-blue-600 hover:underline"><i class="fab fa-linkedin mr-2"></i>LinkedIn</a></p>
-                        <p><a href="${applicant.portfolio}" target="_blank" class="text-blue-600 hover:underline"><i class="fas fa-briefcase mr-2"></i>Portfolio</a></p>
-                    </div>
-                    <div class="profile-section">
-                        <h3>Application Details</h3>
-                        <p><i class="fas fa-clock mr-2"></i>Submitted on ${new Date(applicant.Timestamp).toLocaleString()}</p>
-                    </div>
-                    <div class="profile-section">
-                        <h3>Committee-Specific Questions</h3>
-                        ${generateCommitteeQuestions(applicant)}
-                    </div>
+                <div class="profile-section">
+                    <h3>Personal Details</h3>
+                    <p><i class="fas fa-user mr-2"></i>${applicant.gender}</p>
+                    <p><i class="fas fa-calendar mr-2"></i>${applicant.dob}</p>
+                </div>
+                <div class="profile-section">
+                    <h3>Academic Information</h3>
+                    <p><i class="fas fa-university mr-2"></i>${applicant.faculty}${applicant.otherFaculty ? ` - ${applicant.otherFaculty}` : ''}</p>
+                    <p><i class="fas fa-graduation-cap mr-2"></i>${applicant.academicYear}</p>
+                </div>
+                <div class="profile-section">
+                    <h3>Skills & Experience</h3>
+                    <p class="whitespace-pre-wrap">${applicant.skills}</p>
+                    <p class="mt-2 whitespace-pre-wrap">${applicant.experience}</p>
+                </div>
+                <div class="profile-section">
+                    <h3>Social Media & Portfolio</h3>
+                    ${applicant.facebook ? `<p><a href="${applicant.facebook}" target="_blank" class="text-blue-600 hover:underline"><i class="fab fa-facebook mr-2"></i>Facebook</a></p>` : ''}
+                    ${applicant.linkedin ? `<p><a href="${applicant.linkedin}" target="_blank" class="text-blue-600 hover:underline"><i class="fab fa-linkedin mr-2"></i>LinkedIn</a></p>` : ''}
+                    ${applicant.portfolio ? `<p><a href="${applicant.portfolio}" target="_blank" class="text-blue-600 hover:underline"><i class="fas fa-briefcase mr-2"></i>Portfolio</a></p>` : ''}
+                </div>
+                <div class="profile-section">
+                    <h3>Application Details</h3>
+                    <p><i class="fas fa-clock mr-2"></i>Submitted on ${new Date(applicant.Timestamp).toLocaleString()}</p>
+                </div>
+                <div class="profile-section">
+                    <h3>Committee-Specific Questions</h3>
+                    ${generateCommitteeQuestions(applicant)}
                 </div>
             </div>
-        `;
+        </div>
+    `;
 
-        document.getElementById('modalContent').innerHTML = modalContent;
-        document.getElementById('applicantModal').classList.remove('hidden');
-    };
+    document.getElementById('modalContent').innerHTML = modalContent;
+    document.getElementById('applicantModal').classList.remove('hidden');
+};
+
 
     // Call showLoginModal() when the page loads
     document.addEventListener('DOMContentLoaded', showLoginModal);
