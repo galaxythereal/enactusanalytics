@@ -405,20 +405,25 @@ function showLoginModal() {
     document.getElementById('loginModal').classList.remove('hidden');
 }
 
-// Login function
 function login() {
     const password = document.getElementById('passwordInput').value;
     const user = Object.keys(users).find(key => users[key] === password);
     
     if (user) {
         currentUser = user;
-        document.getElementById('loginModal').classList.add('hidden');
+        document.getElementById('loginModal').style.display = 'none'; // Change this line
         document.querySelector('main').style.display = 'block';
         fetchData();
     } else {
         alert('Invalid password');
     }
 }
+
+// Add this function to show the login modal
+function showLoginModal() {
+    document.getElementById('loginModal').style.display = 'flex'; // Change this line
+}
+
 
 // Fetch data function
 async function fetchData() {
@@ -560,20 +565,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 }
-// function login() {
-//     const password = document.getElementById('passwordInput').value;
-//     const user = Object.keys(users).find(key => users[key] === password);
-    
-//     if (user) {
-//         currentUser = user;
-//         document.getElementById('loginModal').classList.add('hidden');
-//         // Update UI to show the dashboard
-//         document.querySelector('main').style.display = 'block';
-//         fetchData(); // Fetch data after successful login
-//     } else {
-//         alert('Invalid password');
-//     }
-// }
+
     function updateDashboard() {
         applyFilters();
         updateStats();
