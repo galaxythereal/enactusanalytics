@@ -145,7 +145,9 @@
             <button onclick="login()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
         </div>
     </div>
-    
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="spinner"></div>
+</div>
 
     <header class="gradient-bg text-white py-6">
         <div class="container mx-auto px-4">
@@ -360,80 +362,71 @@
         </div>
     </div>
     <script>
-            // Add this at the beginning of your script
-    let currentUser = null;
-    const users = {
-        'admin': 'admin123',
-        'projects': 'projects123',
-        'logistics': 'logistics123',
-        'presentation': 'presentation123',
-        'graphicdesign': 'graphicdesign123',
-        'videophoto': 'videophoto123',
-        'hr': 'hr123',
-        'prfr': 'prfr123',
-        'digitalmarketing': 'digitalmarketing123'
-    };
+  // Global variables
+let applicants = [];
+let filteredApplicants = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let currentUser = null;
+let timelineChart, committeeChart, genderChart, academicYearChart, facultyChart;
 
-    function showLoginModal() {
-        document.getElementById('loginModal').classList.remove('hidden');
+const users = {
+    'admin': 'admin123',
+    'projects': 'projects123',
+    'logistics': 'logistics123',
+    'presentation': 'presentation123',
+    'graphicdesign': 'graphicdesign123',
+    'videophoto': 'videophoto123',
+    'hr': 'hr123',
+    'prfr': 'prfr123',
+    'digitalmarketing': 'digitalmarketing123'
+};
+
+const filters = {
+    preferredCommittee: '',
+    faculty: '',
+    academicYear: '',
+    search: ''
+};
+
+// Function to show login modal
+function showLoginModal() {
+    document.getElementById('loginModal').classList.remove('hidden');
+}
+
+// Login function
+function login() {
+    const password = document.getElementById('passwordInput').value;
+    const user = Object.keys(users).find(key => users[key] === password);
+    
+    if (user) {
+        currentUser = user;
+        document.getElementById('loginModal').classList.add('hidden');
+        document.querySelector('main').style.display = 'block';
+        fetchData();
+    } else {
+        alert('Invalid password');
+    }
+}
+
+// Fetch data function
+async function fetchData() {
+    if (!currentUser) {
+        showLoginModal();
+        return;
     }
 
-    function login() {
-        const password = document.getElementById('passwordInput').value;
-        const user = Object.keys(users).find(key => users[key] === password);
-        
-        if (user) {
-            currentUser = user;
-            document.getElementById('loginModal').classList.add('hidden');
-            fetchData(); // Fetch data after successful login
-        } else {
-            alert('Invalid password');
-        }
-    }
-document.addEventListener("DOMContentLoaded", function () {
-    let applicants = [];
-    let filteredApplicants = [];
-    let currentPage = 1;
-    const itemsPerPage = 10;
-
-    // Chart instances
-    let timelineChart, committeeChart, genderChart, academicYearChart, facultyChart;
-
-    const filters = {
-        preferredCommittee: '',
-        faculty: '',
-        academicYear: '',
-        search: ''
-    };
-
-    // DOM elements
-    const totalApplicantsEl = document.getElementById('totalApplicants');
-    const genderRatioEl = document.getElementById('genderRatio');
-    const topFacultyEl = document.getElementById('topFaculty');
-    const popularCommitteeEl = document.getElementById('popularCommittee');
-    const startRangeEl = document.getElementById('startRange');
-    const endRangeEl = document.getElementById('endRange');
-    const totalEntriesEl = document.getElementById('totalEntries');
-    const applicantModal = document.getElementById('applicantModal');
-    const modalContentEl = document.getElementById('modalContent');
     const loadingOverlay = document.getElementById('loading-overlay');
-
-    async function fetchData() {
-        if (!currentUser) {
-            showLoginModal();
-            return;
+    loadingOverlay.style.display = 'flex';
+    try {
+        const response = await fetch('https://script.google.com/macros/s/AKfycbz9qFKlJQ9AxBzUNE-ZrXbG_q92r-kjVBDb3D8u3HN7g-Aq7iD64KL6zkIxgimEQA/exec');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        loadingOverlay.style.display = 'flex';
-        try {
-            const response = await fetch('https://script.google.com/macros/s/AKfycbz9qFKlJQ9AxBzUNE-ZrXbG_q92r-kjVBDb3D8u3HN7g-Aq7iD64KL6zkIxgimEQA/exec');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            if (data.status === "error") {
-                throw new Error(data.message);
-            }
+        const data = await response.json();
+        if (data.status === "error") {
+            throw new Error(data.message);
+        }
             applicants = data.data.map(row => ({
                 Timestamp: row['Timestamp'] || '',
                 firstName: row['firstName'] || '',
@@ -488,15 +481,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 
 }));
          // Filter applicants based on user role
-            if (currentUser !== 'admin') {
-                applicants = applicants.filter(a => a.preferredCommittee.toLowerCase() === currentUser);
-            }
-            
+          if (currentUser !== 'admin') {
+            applicants = applicants.filter(a => a.preferredCommittee.toLowerCase() === currentUser);
+        }
 
         console.log('Processed applicants:', applicants);
-        
-        stats = data.stats;
-        console.log('Stats:', stats);
         
         initializeDashboard();
     } catch (error) {
@@ -506,12 +495,37 @@ document.addEventListener("DOMContentLoaded", function () {
         loadingOverlay.style.display = 'none';
     }
 }
-    function initializeDashboard() {
-        updateFilters();
-        initializeCharts();
-        updateDashboard();
-            attachEventListeners();
-    }
+
+// Initialize dashboard function
+function initializeDashboard() {
+    updateFilters();
+    initializeCharts();
+    updateDashboard();
+    attachEventListeners();
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelector('main').style.display = 'none';
+    showLoginModal();
+
+    // DOM elements
+    const totalApplicantsEl = document.getElementById('totalApplicants');
+    const genderRatioEl = document.getElementById('genderRatio');
+    const topFacultyEl = document.getElementById('topFaculty');
+    const popularCommitteeEl = document.getElementById('popularCommittee');
+    const startRangeEl = document.getElementById('startRange');
+    const endRangeEl = document.getElementById('endRange');
+    const totalEntriesEl = document.getElementById('totalEntries');
+    const applicantModal = document.getElementById('applicantModal');
+    const modalContentEl = document.getElementById('modalContent');
+    const loadingOverlay = document.getElementById('loading-overlay');
+
+    // Attach event listeners
+    attachEventListeners();
+});
+
+    
+
 
     function updateFilters() {
     const committees = [...new Set(applicants.map(a => a.preferredCommittee))].filter(Boolean);
@@ -535,7 +549,20 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 }
-
+// function login() {
+//     const password = document.getElementById('passwordInput').value;
+//     const user = Object.keys(users).find(key => users[key] === password);
+    
+//     if (user) {
+//         currentUser = user;
+//         document.getElementById('loginModal').classList.add('hidden');
+//         // Update UI to show the dashboard
+//         document.querySelector('main').style.display = 'block';
+//         fetchData(); // Fetch data after successful login
+//     } else {
+//         alert('Invalid password');
+//     }
+// }
     function updateDashboard() {
         applyFilters();
         updateStats();
